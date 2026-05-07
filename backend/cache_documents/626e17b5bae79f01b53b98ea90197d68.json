@@ -1,0 +1,86 @@
+{
+  "source": "/tmp/tmpmub572y_.pdf",
+  "chunks": [
+    {
+      "text": "3 Projets IA de Niveau Production pour Impressionner les Recruteurs\n\nCes projets ne sont pas des tutoriels Kaggle. Ce sont des vrais problèmes que les entreprises comme Mistral, OpenAI, DeepMind et Meta résolvent actuellement. Les recruteurs reconnaîtront immédiatement votre expertise.\n\nProjet 1 : Optimisation d'Inférence LLM avec Quantization et Batching Dynamique\n\nLe Problème Réel\n\nLes entreprises dépensent des millions de dollars en coûts GPU pour servir des LLMs. Une réduction de 30% du coût par token = économies massives. C'est un vrai problème de production.\n\nCe que vous allez construire\n\nUn système d'inférence LLM optimisé qui réduit la latence et le coût tout en maintenant la qualité.\n\nSpéciﬁcations techniques :\n\n1. Quantization 8-bit (QLoRA/GPTQ)\n\n• Implémenter la quantization post-training sur un modèle open-source (Mistral 7B, Llama 2)\n\n• Mesurer la dégradation de performance (MMLU, HellaSwag benchmarks)",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 0
+    },
+    {
+      "text": "• Objectif : Réduire la taille du modèle de 75% avec moins de 2% de perte de performance\n\n2. Batching Dynamique avec Paged Attention\n\n• Utiliser vLLM ou TensorRT-LLM pour implémenter du paged attention\n\n• Permettre des batch sizes variables selon la mémoire disponible\n\n• Mesurer : throughput (tokens/sec), latency (ms), GPU memory usage\n\n3. Caching Multi-Niveau\n\n• Implémenter un cache KV (Key-Value) avec éviction LRU\n\n• Partager les KV caches entre requêtes similaires (prompt caching)\n\n• Mesurer : réduction de latence pour les requêtes répétées\n\n4. Benchmarking Production\n\n• Comparer avec vLLM, TensorRT-LLM, Ollama\n\n• Publier les résultats : latency vs throughput vs cost\n\n• Exemple : \"Réduction de 40% du coût par token vs baseline\"\n\nLivrables :\n\n• Code GitHub bien documenté (PyTorch + CUDA kernels)\n\n• Blog post technique (Medium) avec benchmarks\n\n• Repo public avec instructions de reproduction\n\nPourquoi c'est impressionnant :",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 1
+    },
+    {
+      "text": "• Les recruteurs de Mistral/OpenAI optimisent l'inférence quotidiennement\n\n• Vous montrez que vous comprenez les vrais constraints (latency, cost, memory)\n\n• C'est un vrai problème qu'aucun étudiant ne résout\n\nProjet 2 : Détection de Hallucinations dans les LLMs avec Métriques de Conﬁance\n\nLe Problème Réel\n\nLes LLMs \"hallucinent\" (inventent des informations). Les entreprises perdent conﬁance en leurs systèmes IA. Détecter et réduire les hallucinations = valeur commerciale directe.\n\nCe que vous allez construire\n\nUn système qui détecte quand un LLM ment et quantiﬁe sa conﬁance.\n\nSpéciﬁcations techniques :\n\n1. Extraction de Scores de Conﬁance\n\n• Accéder aux logits internes du modèle (dernière couche)\n\n• Calculer l'entropie de la distribution de probabilité\n\n• Mesurer la \"certitude\" du modèle à chaque token\n\n• Formule : conﬁdence = 1 - entropy(logits) / log(vocab_size)\n\n2. Détection de Hallucinations par Comparaison Sémantique",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 2
+    },
+    {
+      "text": "• Utiliser des embeddings (Sentence-Transformers) pour comparer la réponse LLM avec des sources ﬁables\n\n• Implémenter un système de fact-checking automatique\n\n• Mesurer : precision, recall, F1-score sur un dataset de hallucinations connues\n\n3. Uncertainty Quantiﬁcation (UQ)\n\n• Implémenter Bayesian approximation (Dropout-based ou Ensemble)\n\n• Générer N réponses diﬀérentes du même LLM et mesurer la variance\n\n• Si variance haute = modèle incertain = hallucination probable\n\n4. Benchmark sur Datasets Publics\n\n• Utiliser TruthfulQA, HaluEval, FactKG\n\n• Comparer avec des baselines (simple entropy, semantic similarity)\n\n• Publier les résultats : \"Détection de 85% des hallucinations avec 10% de faux positifs\"\n\nLivrables :\n\n• Framework Python réutilisable\n\n• Paper/Blog post avec résultats expérimentaux\n\n• Intégration avec Hugging Face Transformers\n\n• Dataset annoté de hallucinations\n\nPourquoi c'est impressionnant :\n\n• Anthropic, OpenAI investissent massivement dans la détection de hallucinations",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 3
+    },
+    {
+      "text": "• Vous montrez que vous comprenez les limitations réelles des LLMs\n\n• C'est un problème non trivial qui demande de la créativité\n\nProjet 3 : Système de Retrieval-Augmented Generation (RAG) Optimisé avec Évaluation Rigoureuse\n\nLe Problème Réel\n\nLes LLMs seuls ne peuvent pas accéder à des informations à jour. Les entreprises utilisent RAG pour connecter les LLMs à des bases de données. Mais la plupart des implémentations RAG sont naïves et ineﬃcaces.\n\nCe que vous allez construire\n\nUn système RAG production-ready avec optimisations avancées et évaluation rigoureuse.\n\nSpéciﬁcations techniques :\n\n1. Retriever Hybride (Dense + Sparse)\n\n• Implémenter BM25 (sparse retrieval) + Dense retrieval (FAISS/Milvus)\n\n• Combiner les scores avec une stratégie intelligente (fusion, réranking)\n\n• Mesurer : Mean Reciprocal Rank (MRR), Normalized Discounted Cumulative Gain (NDCG)\n\n2. Réranking avec Cross-Encoder\n\n• Utiliser un cross-encoder (ms-marco-MiniLM-L-12-v2) pour réranker les top-k résultats",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 4
+    },
+    {
+      "text": "• Améliorer la pertinence des documents récupérés\n\n• Mesurer : impact sur la qualité des réponses ﬁnales\n\n3. Chunking Intelligent\n\n• Implémenter plusieurs stratégies de chunking (ﬁxed, semantic, hierarchical)\n\n• Mesurer l'impact sur la qualité du retrieval\n\n• Trouver la taille optimale de chunk pour votre domaine\n\n4. Évaluation Rigoureuse (RAGAS Framework)\n\n• Mesurer : Faithfulness (réponse basée sur le contexte), Answer Relevance, Context Precision\n\n• Utiliser des LLMs comme juges (LLM-as-a-judge)\n\n• Comparer plusieurs conﬁgurations de RAG\n\n• Publier un rapport : \"Conﬁguration X améliore la qualité de 25%\"\n\n5. Optimisations Production\n\n• Caching des embeddings\n\n• Batch processing des requêtes\n\n• Monitoring et logging\n\n• Gestion des erreurs gracieuse\n\nLivrables :\n\n• Code complet avec Docker\n\n• Benchmark comparant diﬀérentes conﬁgurations\n\n• Dashboard de monitoring (Streamlit ou Grafana)\n\n• Documentation complète\n\n• Blog post : \"Building Production-Ready RAG Systems\"",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 5
+    },
+    {
+      "text": "Pourquoi c'est impressionnant :\n\n• RAG est le standard pour les LLM applications en 2026\n\n• Vous montrez que vous comprenez l'évaluation rigoureuse (pas juste \"ça marche\")\n\n• Les recruteurs de Mistral/Anthropic/OpenAI construisent des systèmes RAG quotidiennement\n\nComparaison des 3 Projets\n\nCritère Projet 1 (Inférence) Projet 2 Projet 3 (RAG) (Hallucinations) Diﬃculté 🔴 Très diﬃcile 🟡 Moyen 🟡 Moyen Temps requis 2-3 mois 1-2 mois 1-2 mois Compétences requises CUDA, PyTorch, Optimisation ML, NLP, Évaluation Backend, Vectordbs, Évaluation Intérêt recruteurs ⭐⭐⭐⭐⭐ ⭐⭐⭐⭐⭐ ⭐⭐⭐⭐ Applicable en production ✅ Oui ✅ Oui ✅ Oui Demande du marché Très haute Très haute Très haute\n\nStratégie de Présentation aux Recruteurs\n\n1. GitHub Professionnel\n\nPlain Text\n\nai-inference-optimization/ ├── README.md (avec benchmarks) ├── src/ │ ├── quantization.py │ ├── batching.py │ └── inference.py ├── benchmarks/\n\n│ └── results.json └── requirements.txt\n\n2. Blog Post (Medium/Substack)",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 6
+    },
+    {
+      "text": "Titre : \"Optimizing LLM Inference: From 100ms to 10ms Latency\"\n\n• Expliquez le problème\n\n• Montrez vos solutions\n\n• Publiez les benchmarks\n\n• Comparez avec les solutions existantes\n\n3. Présentation aux Recruteurs\n\n\"J'ai construit un système d'inférence LLM qui réduit la latence de 90% et le coût de 40%. Voici le code, les benchmarks et la méthodologie.\"\n\nPar Où Commencer ?\n\nRecommandation : Commencez par le Projet 3 (RAG) car :\n\n• Plus accessible (moins de CUDA/optimisation bas-niveau)\n\n• Vous pouvez le ﬁnir en 1-2 mois\n\n• Très demandé sur le marché\n\n• Bon portfolio piece\n\nPuis, si vous avez du temps, attaquez le Projet 1 (Inférence) pour montrer votre maîtrise technique.\n\nRessources Clés\n\nProjet 1\n\n• vLLM : https://github.com/vllm-project/vllm\n\n• TensorRT-LLM : https://github.com/NVIDIA/TensorRT-LLM\n\n• Papers : \"Eﬃcient Memory Management for Large Language Model Serving\"\n\nProjet 2\n\n• TruthfulQA : https://github.com/sylinrl/TruthfulQA\n\n• HaluEval : https://github.com/RUCAIBox/HaluEval",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 7
+    },
+    {
+      "text": "• Papers : \"Hallucinated but Factual! Inspecting the Factuality of Hallucinated Information in Abstractive Summarization\"\n\nProjet 3\n\n• RAGAS : https://github.com/explodinggradients/ragas\n\n• LlamaIndex : https://github.com/run-llama/llama_index\n\n• Langchain : https://github.com/langchain-ai/langchain\n\n• Papers : \"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks\"",
+      "metadata": {
+        "filename": "3_Projets_IA_de_Niveau_Production_pour_Impressionner_les_Recruteurs.pdf",
+        "source": "tmpmub572y_.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 8
+    }
+  ]
+}

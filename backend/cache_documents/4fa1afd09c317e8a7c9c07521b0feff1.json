@@ -1,0 +1,50 @@
+{
+  "source": "/tmp/tmpeffmndtq.pdf",
+  "chunks": [
+    {
+      "text": "Salaires des Research Scientists en IA (2026)\n\nLe salaire d'un Research Scientist varie considérablement selon le lieu, l'expérience et l'entreprise. Voici une analyse détaillée basée sur les données actuelles de 2026.\n\n1. Salaires aux États-Unis (Silicon Valley / San Francisco)\n\nLes salaires les plus élevés se trouvent aux États-Unis, particulièrement chez les géants de la tech et les startups de recherche.\n\nEntreprise Niveau Salaire de base Stock Options Total Compensation OpenAI L4 (Junior/Mid) ~$300k ~$471k $771k - $900k OpenAI L5 (Senior) ~$350k ~$1.1M $1.47M+ Google DeepMind L4 (Research Scientist) ~$210k ~$225k $435k - $500k Google DeepMind L5 (Senior) ~$250k ~$350k $600k+ Meta AI Research Mid-level ~$280k ~$400k $680k - $750k\n\nObservation clé : Les stock options représentent souvent 50-70% de la rémunération totale chez OpenAI et DeepMind. Cela signiﬁe que votre vrai salaire dépend de la valorisation future de l'entreprise.",
+      "metadata": {
+        "filename": "salaire resrch sceint.pdf",
+        "source": "tmpeffmndtq.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 0
+    },
+    {
+      "text": "2. Salaires en Europe (France, Royaume-Uni, Allemagne)\n\nLes salaires européens sont signiﬁcativement plus bas qu'aux États-Unis, mais les conditions de travail et les avantages sociaux compensent partiellement.\n\nFrance (Paris / Île-de-France)\n\nProﬁl Salaire Brut Annuel Notes Research Scientist Junior (Master + 0-2 ans) €50k - €70k Secteur académique ou startup\n\nResearch Scientist Mid-level (3-5 ans) €70k - €100k Mistral AI, Inria, startups bien ﬁnancées Research Scientist Senior (5+ ans) €100k - €150k Postes de leadership ou grandes entreprises Chercheur CNRS/Inria (Permanent) €45k - €80k Salaire académique + primes de recherche\n\nContexte français : Les salaires académiques sont plus bas, mais incluent une sécurité de l'emploi et des avantages (retraite, congés). Les startups (Mistral AI, Hugging Face) oﬀrent des salaires plus compétitifs mais avec plus d'incertitude.\n\nRoyaume-Uni (Londres)",
+      "metadata": {
+        "filename": "salaire resrch sceint.pdf",
+        "source": "tmpeffmndtq.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 1
+    },
+    {
+      "text": "Proﬁl Salaire Annuel (GBP) Équivalent EUR Research Scientist Mid-level £80k - £120k €95k - €142k Research Scientist Senior £120k - £180k €142k - €214k\n\n3. Comparaison Géographique (Salaire Brut Annuel)\n\nPlain Text\n\nÉtats-Unis (OpenAI/DeepMind) : $771k - $1.47M (💰💰💰) Royaume-Uni (DeepMind) : £80k - £180k (💰💰) France (Mistral/Inria) : €50k - €150k (💰)\n\nLe ratio : Un Research Scientist aux États-Unis gagne 10 à 15 fois plus qu'en France pour le même niveau d'expérience.\n\n4. Composantes du Salaire (Cas OpenAI)\n\nPour un Research Scientist L4 chez OpenAI ($771k total) :\n\n• Salaire de base : ~$300k (39%)\n\n• Stock options (RSU) : ~$471k (61%)\n\n• Bonus annuel : Généralement 0-20% du salaire de base\n\n• Avantages : Assurance santé premium, retraite 401(k), accès à des conférences\n\nImportant : Les stock options se vesting sur 4 ans. Si OpenAI fait faillite ou perd de la valeur, votre compensation réelle diminue drastiquement.\n\n5. Facteurs qui Inﬂuencent le Salaire\n\nA. Expérience",
+      "metadata": {
+        "filename": "salaire resrch sceint.pdf",
+        "source": "tmpeffmndtq.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 2
+    },
+    {
+      "text": "• 0-2 ans (Master frais) : Salaire de base seulement, peu de stock\n\n• 3-5 ans (Doctorat ou expérience industrie) : Stock options commencent à être signiﬁcatifs\n\n• 5+ ans (Leader, publications majeures) : Salaire + stock très élevés\n\nB. Domaine de Spécialisation\n\n• LLM (Langage) : Très demandé, salaires +20-30% plus élevés\n\n• Vision par ordinateur : Demande modérée\n\n• AI Safety : Très spécialisé, salaires compétitifs mais moins de postes\n\nC. Entreprise\n\n• Startups pré-IPO : Salaire de base bas, stock options massives (risqué)\n\n• Grandes tech (Google, Meta) : Salaire équilibré, stock stable\n\n• Académie (CNRS, Inria) : Salaire bas, sécurité maximale\n\nD. Géographie\n\n• Silicon Valley : Salaires 3-5x plus élevés qu'en Europe\n\n• Paris : Moins cher que la Californie, mais marché en croissance\n\n• Remote : Tendance croissante, salaires souvent ajustés à la baisse\n\n6. Recommandation pour Vous\n\nStratégie optimale :",
+      "metadata": {
+        "filename": "salaire resrch sceint.pdf",
+        "source": "tmpeffmndtq.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 3
+    },
+    {
+      "text": "1. Court terme (1-3 ans) : Accepter un poste chez Mistral AI ou Inria en France (€70k- €100k). Vous gagnez de l'expérience et des publications.\n\n2. Moyen terme (3-5 ans) : Postuler chez DeepMind Londres (£120k+) ou OpenAI (si vous avez un track record solide).\n\n3. Long terme : Si vous visez le maximum de rémunération, Silicon Valley est inévitable ($500k+).\n\nAlternative : Rester en France/Europe si vous privilégiez l'équilibre vie-travail et la stabilité.\n\n7. Négociation et Conseils Pratiques\n\n• Ne pas accepter le premier salaire : Les entreprises tech s'attendent à une négociation de 10-20%.\n\n• Valoriser vos publications : Chaque papier accepté à NeurIPS/ICML peut justiﬁer une augmentation de 5-10%.\n\n• Comparer les packages totaux : Un salaire bas + stock options peut valoir plus qu'un salaire élevé sans stock.\n\n• Demander le télétravail : Cela peut justiﬁer un salaire légèrement plus bas mais une meilleure qualité de vie.",
+      "metadata": {
+        "filename": "salaire resrch sceint.pdf",
+        "source": "tmpeffmndtq.pdf",
+        "extension": ".pdf"
+      },
+      "chunk_index": 4
+    }
+  ]
+}

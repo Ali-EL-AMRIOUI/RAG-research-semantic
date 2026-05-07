@@ -1,0 +1,12 @@
+{
+  "source": "/tmp/tmpqs6qoi4e.png",
+  "chunks": [
+    {
+      "text": "Voici ce que tu colles dans UNE SEULE cellule Markdown :\nmarkdown O Copy\n\n## Docker Deployment\n\n### Build the image\n\n~**bash\n\ndocker build -t churn-prediction -f deployment/Dockerfile .\nRun the container\n\nbash O Copy\n\ndocker run -p 8000:8000 churn-prediction\n\nOr use Docker Compose\n\nbash O Copy\n\n&, Download\n\n&, Download\n\nv\n\n&, Downloau",
+      "metadata": {
+        "source": "tmpqs6qoi4e.png"
+      },
+      "chunk_index": 0
+    }
+  ]
+}
