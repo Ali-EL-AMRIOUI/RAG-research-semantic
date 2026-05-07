@@ -1,9 +1,23 @@
+# Python / Environnement
+.venv/
+__pycache__/
+*.py[cod]
+*.class
+*.pkl
+
+# Projet RAG / Données
+backend/cache_embeddings/
+qdrant_data/
+qdrant_storage/
+minikube-linux-amd64
+.env
+
+# Frontend
 node_modules/
 frontend/node_modules/
 frontend/.next/
-qdrant_data/
-qdrant_storage/
-.env
-.venv/
-minikube-linux-amd64
+frontend/out/
+
+# Divers
 *.log
+.DS_Store
