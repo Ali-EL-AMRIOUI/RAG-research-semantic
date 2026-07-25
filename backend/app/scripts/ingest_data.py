@@ -25,7 +25,7 @@ DEFAULT_CONFIG = {
     "embedding_model": "all-MiniLM-L6-v2",
     "qdrant_host": "localhost",
     "qdrant_port": 6333,
-    "collection_name": "phd_collection",
+    "collection_name": "documents",
     "vector_dim": 384
 }
 

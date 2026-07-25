@@ -21,7 +21,7 @@ QDRANT_HOST: str = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT: int = int(os.getenv("QDRANT_PORT", "6333"))
 QDRANT_API_KEY: Optional[str] = os.getenv("QDRANT_API_KEY", None)
 
-QDRANT_COLLECTION_NAME: str = os.getenv("QDRANT_COLLECTION_NAME", "phd_collection")
+QDRANT_COLLECTION_NAME: str = os.getenv("QDRANT_COLLECTION_NAME", "documents")
 VECTOR_DIM: int = int(os.getenv("VECTOR_DIM", "384"))
 
 EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
