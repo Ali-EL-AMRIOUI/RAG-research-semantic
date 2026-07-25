@@ -14,7 +14,7 @@ class RetrievalService:
         self,
         qdrant_host: str = "localhost",
         qdrant_port: int = 6333,
-        collection_name: str = "phd_collection",
+        collection_name: str = "documents",
         embedding_model: str = "all-MiniLM-L6-v2",
         use_hybrid: bool = True
     ):

@@ -26,7 +26,7 @@ class IngestionService:
         use_cache: bool = True,
         qdrant_host: str = "localhost",
         qdrant_port: int = 6333,
-        collection_name: str = "phd_collection",
+        collection_name: str = "documents",
         vector_dim: int = 384
     ):
         self.chunk_size = chunk_size
