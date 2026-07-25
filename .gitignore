@@ -4,11 +4,16 @@ __pycache__/
 *.py[cod]
 *.class
 *.pkl
+.pytest_cache/
+.mypy_cache/
 
-# Projet RAG / Données
-backend/cache_embeddings/
+# Projet RAG / Données (chemins corrigés)
+backend/cache/
+backend/cache_documents/
+backend/data/raw/
+backend/data/processed/
+backend/data/embeddings/
 qdrant_data/
-qdrant_storage/
 minikube-linux-amd64
 .env
 
@@ -17,7 +22,14 @@ node_modules/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+dist/
+build/
+coverage/
+.turbo/
 
+# Secrets Kubernetes
+kubernetes/secret.yaml
+!kubernetes/secret.yaml.example
 # Divers
 *.log
 .DS_Store
