@@ -33,3 +33,5 @@ kubernetes/secret.yaml
 # Divers
 *.log
 .DS_Store
+qdrant_storage/
+backend/qdrant_storage/

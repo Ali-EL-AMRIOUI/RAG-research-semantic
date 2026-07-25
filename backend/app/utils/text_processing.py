@@ -8,6 +8,7 @@ import json
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.datamodel.base_models import InputFormat
+from app.core.config import DOCUMENT_CACHE_DIR
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class IndustrialDocumentLoader:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.use_cache = use_cache
-        self.cache_dir = cache_dir or Path("./cache_documents")
+        self.cache_dir = cache_dir or DOCUMENT_CACHE_DIR
         
         if use_cache:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
