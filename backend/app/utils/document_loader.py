@@ -8,6 +8,7 @@ from io import BytesIO
 
 from unstructured.partition.auto import partition
 from PIL import Image
+from app.core.config import DOCUMENT_CACHE_DIR
 import pytesseract
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class IndustrialDocumentLoader:
         self.chunk_overlap = chunk_overlap
         self.use_cache = use_cache
         self.ocr_enabled = ocr_enabled
-        self.cache_dir = cache_dir or Path("./cache_documents")
+        self.cache_dir = cache_dir or DOCUMENT_CACHE_DIR
         
         if use_cache:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
