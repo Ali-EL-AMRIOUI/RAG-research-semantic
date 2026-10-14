@@ -1,68 +1,117 @@
+"""
+Schémas Pydantic unifiés de l'API.
+
+Remplace 3 fichiers qui définissaient chacun leur propre version des mêmes
+concepts (requests.py, schemas.py, db/documents.py) — dont un FeedbackRequest
+dupliqué avec des champs différents. Source unique désormais.
+
+Si app/api/routes/search.py ou app/main.py importaient depuis
+`app.models.requests` ou `app.db.documents`, mettre à jour les imports vers
+`app.models.schemas`.
+"""
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+from typing import Optional, Dict, Any, List
+from enum import Enum
+import uuid
 
-class QueryRequest(BaseModel):
-    query: str = Field(..., description="User query", min_length=1, max_length=5000)
-    top_k: int = Field(default=5, description="Number of chunks to retrieve", ge=1, le=50)
-    top_n: int = Field(default=3, description="Number of chunks to use for response", ge=1, le=20)
-    use_hybrid: bool = Field(default=True, description="Use hybrid search")
-    use_reranker: bool = Field(default=True, description="Use reranking")
 
-class DocumentUploadRequest(BaseModel):
-    text: str = Field(..., description="Text to ingest", min_length=1)
-    filename: Optional[str] = Field(default=None, description="Source filename")
-    metadata: Optional[Dict[str, Any]] = Field(default={}, description="Metadata")
+class SearchType(str, Enum):
+    VECTOR = "vector"
+    HYBRID = "hybrid"
+    KEYWORD = "keyword"
 
-class BatchQueryRequest(BaseModel):
-    queries: List[str] = Field(..., description="List of questions", min_items=1, max_items=20)
-    top_k: int = Field(default=5, ge=1, le=20)
+
+# --- Modèles de données internes (représentation API d'un document/chunk) ---
+
+class Document(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    text: str
+    metadata: Optional[Dict[str, Any]] = {}
+
+
+class Chunk(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    document_id: Optional[str] = None
+    text: str
+    chunk_index: int = 0
+    metadata: Optional[Dict[str, Any]] = {}
+
 
 class SourceDocument(BaseModel):
     content: str = Field(..., description="Chunk content")
-    filename: str = Field(default="unknown", description="Source filename")
-    page: int = Field(default=0, description="Page number")
-    score: float = Field(default=0.0, description="Similarity score")
-    title_path: str = Field(default="", description="Title path")
+    filename: str = Field(default="unknown")
+    page: int = Field(default=0)
+    score: float = Field(default=0.0)
+    title_path: str = Field(default="")
+
+
+# --- Requêtes / réponses RAG ("ask" : retrieval + génération LLM) ---
+
+class QueryRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=5000)
+    top_k: int = Field(default=10, ge=1, le=50, description="Chunks récupérés avant reranking")
+    top_n: int = Field(default=5, ge=1, le=20, description="Chunks utilisés pour la réponse")
+    use_hybrid: bool = Field(default=True)
+    use_reranker: bool = Field(default=True)
+    return_sources: bool = Field(default=True, description="Inclure les sources dans la réponse")
+
 
 class QueryResponse(BaseModel):
-    query: str = Field(..., description="User query")
-    answer: str = Field(..., description="Generated answer")
-    retrieved_chunks: List[str] = Field(default=[], description="Retrieved chunks")
-    sources: List[SourceDocument] = Field(default=[], description="Detailed sources")
-    total_chunks: int = Field(default=0, description="Number of chunks used")
-    processing_time_ms: Optional[float] = Field(default=None, description="Processing time in ms")
-
-class SimpleQueryResponse(BaseModel):
     query: str
-    results: List[Dict[str, Any]]
-    total: int
+    answer: str
+    sources: List[SourceDocument] = []
+    total_chunks: int = 0
+    processing_time_ms: Optional[float] = None
 
-class Document(BaseModel):
-    text: str
-    metadata: Optional[Dict[str, Any]] = {}
 
-class Chunk(BaseModel):
-    text: str
-    index: int = 0
-    metadata: Optional[Dict[str, Any]] = {}
+class BatchQueryRequest(BaseModel):
+    queries: List[str] = Field(..., min_items=1, max_items=20)
+    top_k: int = Field(default=5, ge=1, le=20)
 
-class EmbeddingResponse(BaseModel):
-    embedding: List[float]
-    dimension: int
-    model: str
 
-class VectorPoint(BaseModel):
-    id: str
-    vector: List[float]
-    payload: Dict[str, Any]
-    score: Optional[float] = None
+# --- Requêtes / réponses recherche pure (sans LLM) ---
+
+class SimpleSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    limit: int = Field(default=10, ge=1, le=100)
+    search_type: SearchType = Field(default=SearchType.HYBRID)
+    score_threshold: Optional[float] = Field(default=None, ge=0, le=1)
+    filters: Optional[Dict[str, Any]] = None
+
 
 class SearchResult(BaseModel):
     id: str
     score: float
     content: str
-    metadata: Dict[str, Any]
+    metadata: Dict[str, Any] = {}
+
+
+class CompareSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    limit: int = Field(default=5, ge=1, le=20)
+    modes: List[SearchType] = [SearchType.VECTOR, SearchType.HYBRID, SearchType.KEYWORD]
+
+
+class CompareResult(BaseModel):
+    mode: str
+    results: List[SearchResult]
+    avg_score: float
+    response_time_ms: float
+
+
+# --- Ingestion ---
+
+class IngestRequest(BaseModel):
+    text: str = Field(..., min_length=1)
+    filename: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = {}
+
+
+class IngestFileRequest(BaseModel):
+    filename: str
+    content: str = Field(..., min_length=1)
+    metadata: Optional[Dict[str, Any]] = {}
+
 
 class UploadResponse(BaseModel):
     filename: str
@@ -70,24 +119,48 @@ class UploadResponse(BaseModel):
     message: str
     success: bool = True
 
+
+# --- Gestion des documents indexés ---
+
 class DocumentInfo(BaseModel):
     name: str
     chunks: int
     pages: List[int] = []
     uploaded_at: Optional[str] = None
 
+
 class DocumentsListResponse(BaseModel):
     total_documents: int
     documents: List[DocumentInfo]
     total_chunks: int
 
+
+class DeleteRequest(BaseModel):
+    ids: Optional[List[str]] = None
+    filename: Optional[str] = None
+    filter_conditions: Optional[Dict[str, Any]] = None
+
+
 class DeleteResponse(BaseModel):
     deleted_count: int
     message: str
 
+
+class ClearCollectionRequest(BaseModel):
+    confirm: bool = Field(..., description="Doit être True pour confirmer la suppression")
+
+
 class ClearResponse(BaseModel):
     deleted_count: int
     message: str
+
+
+class UpdateMetadataRequest(BaseModel):
+    ids: List[str]
+    metadata: Dict[str, Any]
+
+
+# --- Stats / santé ---
 
 class CollectionStats(BaseModel):
     name: str
@@ -96,6 +169,7 @@ class CollectionStats(BaseModel):
     dimension: int
     hybrid_search_enabled: bool = False
 
+
 class ServiceStats(BaseModel):
     collection: CollectionStats
     embedding_model: str
@@ -103,30 +177,46 @@ class ServiceStats(BaseModel):
     chunk_overlap: int
     documents_count: int
 
+
 class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = "1.0.0"
-    services: Dict[str, bool] = Field(default={})
+    services: Dict[str, bool] = {}
     message: Optional[str] = None
+
 
 class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     status_code: int = 500
 
+
+# --- Embeddings bruts (endpoint de debug/introspection éventuel) ---
+
+class EmbeddingResponse(BaseModel):
+    embedding: List[float]
+    dimension: int
+    model: str
+
+
+class VectorPoint(BaseModel):
+    id: str
+    vector: List[float]
+    payload: Dict[str, Any]
+    score: Optional[float] = None
+
+
+# --- Feedback utilisateur ---
+
 class FeedbackRequest(BaseModel):
     query_id: str
     answer_id: str
     rating: int = Field(..., ge=1, le=5)
-    comment: Optional[str] = Field(None, max_length=500)
+    comment: Optional[str] = Field(default=None, max_length=500)
+    relevant_sources: Optional[List[str]] = None
+
 
 class FeedbackResponse(BaseModel):
     success: bool
     message: str
     feedback_id: Optional[str] = None
-
-class CompareResult(BaseModel):
-    mode: str
-    results: List[SearchResult]
-    avg_score: float
-    response_time_ms: float

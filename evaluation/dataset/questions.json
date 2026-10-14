@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q001",
+    "question": "Which machine learning model is used to predict the RUL?"
+  },
+  {
+    "id": "q002",
+    "question": "Which dataset is used for this predictive maintenance project?"
+  },
+  {
+    "id": "q003",
+    "question": "Which metrics are used to evaluate the accuracy and safety of the predictions?"
+  },
+  {
+    "id": "q004",
+    "question": "How does the project ensure explainability of the model's predictions?"
+  },
+  {
+    "id": "q005",
+    "question": "Which tool was used to optimize the model's hyperparameters?"
+  },
+  {
+    "id": "q006",
+    "question": "Which technologies are used to deploy the application to production?"
+  },
+  {
+    "id": "q007",
+    "question": "What are the foundational topics (socle commun) required for admissibility to the agrégation, according to the report?"
+  },
+  {
+    "id": "q008",
+    "question": "What emerging or differentiating topics does the report mention for the 2026 agrégation session?"
+  },
+  {
+    "id": "q009",
+    "question": "What is the contact email for job applications mentioned in the ANP document?"
+  },
+  {
+    "id": "q010",
+    "question": "What brand logo appears on the laptop lid in the photo?"
+  }
+]

@@ -1,0 +1,151 @@
+{
+  "recall_at_k": 1.0,
+  "precision_at_k": 0.56,
+  "mrr": 1.0,
+  "hit_rate_at_k": 1.0,
+  "k": 5,
+  "num_queries": 10,
+  "timestamp": "2026-08-03T17:35:42.743223+00:00",
+  "details": [
+    {
+      "id": "q001",
+      "question": "Which machine learning model is used to predict the RUL?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q002",
+      "question": "Which dataset is used for this predictive maintenance project?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "قرار فتح المباراة.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q003",
+      "question": "Which metrics are used to evaluate the accuracy and safety of the predictions?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q004",
+      "question": "How does the project ensure explainability of the model's predictions?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q005",
+      "question": "Which tool was used to optimize the model's hyperparameters?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q006",
+      "question": "Which technologies are used to deploy the application to production?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "قرار فتح المباراة.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q007",
+      "question": "What are the foundational topics (socle commun) required for admissibility to the agrégation, according to the report?",
+      "retrieved_filenames": [
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "قرار فتح المباراة.pdf"
+      ],
+      "relevant_filenames": [
+        "rapport agrégation.pdf"
+      ]
+    },
+    {
+      "id": "q008",
+      "question": "What emerging or differentiating topics does the report mention for the 2026 agrégation session?",
+      "retrieved_filenames": [
+        "rapport agrégation.pdf",
+        "قرار فتح المباراة.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "قرار فتح المباراة.pdf"
+      ],
+      "relevant_filenames": [
+        "rapport agrégation.pdf"
+      ]
+    },
+    {
+      "id": "q009",
+      "question": "What is the contact email for job applications mentioned in the ANP document?",
+      "retrieved_filenames": [
+        "قرار فتح المباراة.pdf",
+        "قرار فتح المباراة.pdf",
+        "قرار فتح المباراة.pdf",
+        "قرار فتح المباراة.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ],
+      "relevant_filenames": [
+        "قرار فتح المباراة.pdf"
+      ]
+    },
+    {
+      "id": "q010",
+      "question": "What brand logo appears on the laptop lid in the photo?",
+      "retrieved_filenames": [
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg",
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg",
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg",
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg",
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg"
+      ],
+      "relevant_filenames": [
+        "WhatsApp Image 2026-08-02 at 12.07.50.jpeg"
+      ]
+    }
+  ]
+}

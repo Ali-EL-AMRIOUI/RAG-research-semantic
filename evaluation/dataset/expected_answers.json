@@ -1,0 +1,52 @@
+[
+  {
+    "id": "q001",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["XGBoost"]
+  },
+  {
+    "id": "q002",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["NASA", "CMAPSS"]
+  },
+  {
+    "id": "q003",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["RMSE", "NASA Score"]
+  },
+  {
+    "id": "q004",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["SHAP"]
+  },
+  {
+    "id": "q005",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["Optuna"]
+  },
+  {
+    "id": "q006",
+    "relevant_filenames": ["Rapport_Resume_Projet_Predictive_Maintenance.pdf"],
+    "expected_keywords": ["Docker", "Kubernetes", "FastAPI"]
+  },
+  {
+    "id": "q007",
+    "relevant_filenames": ["rapport agrégation.pdf"],
+    "expected_keywords": ["Jordan", "Banach"]
+  },
+  {
+    "id": "q008",
+    "relevant_filenames": ["rapport agrégation.pdf"],
+    "expected_keywords": ["corps différentiels"]
+  },
+  {
+    "id": "q009",
+    "relevant_filenames": ["قرار فتح المباراة.pdf"],
+    "expected_keywords": ["candidatures@anp.org.ma"]
+  },
+  {
+    "id": "q010",
+    "relevant_filenames": ["WhatsApp Image 2026-08-02 at 12.07.50.jpeg"],
+    "expected_keywords": ["Razer"]
+  }
+]

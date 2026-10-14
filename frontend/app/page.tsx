@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { api } from '@/lib/api';
 
 interface Document {
   name: string;
@@ -35,7 +33,7 @@ export default function Home() {
   const loadDocuments = async () => {
     setLoadingDocs(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/documents`);
+      const res = await api.get('/documents');
       setDocuments(res.data.documents || []);
     } catch (error) {
       console.error('Error loading documents:', error);
@@ -54,7 +52,7 @@ export default function Home() {
 
     const allowedExtensions = ['.pdf', '.txt', '.md', '.docx', '.html', '.htm', '.jpg', '.jpeg', '.png'];
     const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!allowedExtensions.includes(fileExt)) {
       setUploadMessage({ type: 'error', text: 'Unsupported format. Accepted formats: PDF, TXT, MD, DOCX, HTML, JPG, PNG' });
       setTimeout(() => setUploadMessage(null), 3000);
@@ -63,12 +61,12 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append('file', file);
-    
+
     setUploading(true);
     setUploadMessage(null);
-    
+
     try {
-      await axios.post(`${API_BASE_URL}/upload`, formData);
+      await api.post('/upload', formData);
       setUploadMessage({ type: 'success', text: `"${file.name}" indexed successfully` });
       await loadDocuments();
       e.target.value = '';
@@ -84,9 +82,9 @@ export default function Home() {
 
   const onDeleteDocument = async (filename: string) => {
     if (!confirm(`Delete "${filename}" permanently?`)) return;
-    
+
     try {
-      await axios.delete(`${API_BASE_URL}/documents`, { data: { filename } });
+      await api.delete('/documents', { data: { filename } });
       setUploadMessage({ type: 'success', text: `"${filename}" deleted` });
       await loadDocuments();
     } catch (error) {
@@ -103,11 +101,11 @@ export default function Home() {
 
     setLoading(true);
     setAnswer(null);
-    
+
     try {
-      const res = await axios.post(`${API_BASE_URL}/ask`, { question });
+      const res = await api.post('/ask', { question });
       setAnswer(res.data);
-      setQuestion('');  
+      setQuestion('');
     } catch (error: any) {
       console.error(error);
       alert(`Error: ${error.response?.data?.detail || 'AI is not responding'}`);
@@ -219,8 +217,8 @@ export default function Home() {
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
                           <span style={{ fontWeight: 600, color: '#3b82f6', fontSize: 11 }}>#{i + 1}</span>
                           <span style={{ color: '#64748b', fontSize: 11 }}>📄 {doc.filename || 'Document'}</span>
-                          {doc.page && doc.page > 0 && <span style={{ color: '#64748b', fontSize: 11 }}>p.{doc.page}</span>}
-                          {doc.score && <span style={{ color: '#64748b', fontSize: 11 }}>{(doc.score * 100).toFixed(0)}%</span>}
+                          {doc.page !== undefined && doc.page > 0 && <span style={{ color: '#64748b', fontSize: 11 }}>p.{doc.page}</span>}
+                          {doc.score !== undefined && <span style={{ color: '#64748b', fontSize: 11 }}>{(doc.score * 100).toFixed(0)}%</span>}
                         </div>
                         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: '#475569' }}>
                           {typeof doc === 'string' ? doc : doc.content || 'Content not available'}
@@ -244,8 +242,8 @@ export default function Home() {
               onChange={(e) => setQuestion(e.target.value)}
               disabled={loading}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               style={{ position: 'absolute', right: 6, top: 6, padding: '10px 24px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: 40, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
               disabled={loading || !question.trim()}
             >

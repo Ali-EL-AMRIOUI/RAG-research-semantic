@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-08-03T23:02:40.205318+00:00",
+  "num_queries": 10,
+  "avg_keyword_match_rate": 1.0,
+  "details": [
+    {
+      "id": "q001",
+      "question": "Which machine learning model is used to predict the RUL?",
+      "answer": "According to the provided context, the machine learning model used to predict the Remaining Useful Life (RUL) is XGBoost. This information can be found in the document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\", which states that XGBoost was selected for its performance on tabular data, robustness, speed, and compatibility with SHAP. [Source: Rapport_Resume_Projet_Predictive_Maintenance.pdf] \n\nWould you like to know more about the project or the XGBoost model used in this context?",
+      "expected_keywords": [
+        "XGBoost"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q002",
+      "question": "Which dataset is used for this predictive maintenance project?",
+      "answer": "According to the provided context, the dataset used for this predictive maintenance project is the NASA CMAPSS dataset. This information can be found in the document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\". \n\nWould you like to know more about the project or the dataset? I'm here to help.",
+      "expected_keywords": [
+        "NASA",
+        "CMAPSS"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q003",
+      "question": "Which metrics are used to evaluate the accuracy and safety of the predictions?",
+      "answer": "To evaluate the accuracy and safety of the predictions, the metrics used are RMSE, MAE, NASA Score, and Pinball Loss, as mentioned in the document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\". These metrics are utilized to assess both the precision and the safety of the predictions made by the model. \n\nAdditionally, a model of regression quantile is used to produce a Safety RUL, which is more conservative for maintenance decisions, further emphasizing the focus on safety alongside accuracy. \n\nIf you have any more questions or need further clarification on these metrics or the project, feel free to ask!",
+      "expected_keywords": [
+        "RMSE",
+        "NASA Score"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q004",
+      "question": "How does the project ensure explainability of the model's predictions?",
+      "answer": "To ensure explainability of the model's predictions, the project integrates SHAP (Source: Rapport_Resume_Projet_Predictive_Maintenance.pdf). This allows for the identification of variables that influence each prediction, making the model more transparent and interpretable. By using SHAP, the project aims to provide insights into how the model arrives at its predictions, which is essential for understanding and trusting the results. This approach is particularly important in the context of predictive maintenance, where the accuracy and reliability of predictions can have significant implications for decision-making and resource allocation.",
+      "expected_keywords": [
+        "SHAP"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q005",
+      "question": "Which tool was used to optimize the model's hyperparameters?",
+      "answer": "According to the provided context, the tool used to optimize the model's hyperparameters is Optuna. This information can be found in the document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\", which states: \"Les hyperparamètres ont été optimisés avec Optuna.\" \n\nI hope this answers your question. If you have any further queries or need assistance with anything else, please don't hesitate to ask.",
+      "expected_keywords": [
+        "Optuna"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q006",
+      "question": "Which technologies are used to deploy the application to production?",
+      "answer": "To deploy the application to production, the technologies used include API FastAPI, interface Streamlit, MLflow for tracking experiments, Docker, and preparation for Kubernetes, as mentioned in the [Rapport_Resume_Projet_Predictive_Maintenance.pdf]. These tools facilitate a robust and efficient deployment process, ensuring the application is ready for production use.",
+      "expected_keywords": [
+        "Docker",
+        "Kubernetes",
+        "FastAPI"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q007",
+      "question": "What are the foundational topics (socle commun) required for admissibility to the agrégation, according to the report?",
+      "answer": "Bonjour! According to the report \"rapport agrégation.pdf\", the foundational topics (socle commun) required for admissibility to the agrégation include Jordan, Banach, and integration. As stated in the conclusion section: \"La solidité sur le socle commun (Jordan, Banach, intégration) est une condition nécessaire à l'admissibilité\". \n\nAdditionally, the report highlights the importance of mastering certain technical details, such as valuation p-adique and operators like Hilbert-Schmidt, as a signature of a well-prepared candidate. \n\nI hope this answers your question! If you have any further queries, please don't hesitate to ask.",
+      "expected_keywords": [
+        "Jordan",
+        "Banach"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q008",
+      "question": "What emerging or differentiating topics does the report mention for the 2026 agrégation session?",
+      "answer": "Bonjour, I'm happy to help you with your question. According to the provided context from the \"rapport agrégation.pdf\" document, the emerging or differentiating topics mentioned for the 2026 agrégation session include:\n\n* Les corps différentiels (differential fields)\n* Les propriétés spectrales des graphes (spectral properties of graphs)\n* L'équation fonctionnelle $\\Gamma(s+1) = s\\Gamma(s)$ and its link with the fonction Bêta ( $B(s, s')$ ) for asymptotic evaluations\n* Analyse du Bord et Marches au Hasard, specifically the fonctions de Busemann and the topologie du bord du groupe libre $F_2$ ( $\\partial F_2$ )\n* Technicité en Analyse Fonctionnelle, including manipulating dérivées faibles to resolve minimization problems in Sobolev-type spaces\n\nThese topics are mentioned as important for candidates to focus on in order to differentiate themselves and achieve success in the 2026 agrégation session. (Source: rapport agrégation.pdf)",
+      "expected_keywords": [
+        "corps différentiels"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q009",
+      "question": "What is the contact email for job applications mentioned in the ANP document?",
+      "answer": "Hello, I'm happy to help you with your question. According to the provided context from the document \"قرار فتح المباراة.pdf\", the contact email for job applications is candidatures@anp.org.ma. This is mentioned in the section where it provides information on how to submit applications and who to contact for more information. If you have any other questions or need further assistance, feel free to ask!",
+      "expected_keywords": [
+        "candidatures@anp.org.ma"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q010",
+      "question": "What brand logo appears on the laptop lid in the photo?",
+      "answer": "Bonjour! I'm happy to help you with your question. According to the provided context from the document [Source: WhatsApp Image 2026-08-02 at 12.07.50.jpeg], the brand logo that appears on the laptop lid in the photo is the Razer logo, which is described as \"trois serpents entrelacés\" (three intertwined snakes) and is illuminated in green. Would you like to know more about the Razer brand or the laptop model?",
+      "expected_keywords": [
+        "Razer"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    }
+  ]
+}
