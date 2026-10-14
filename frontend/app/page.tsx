@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { isAxiosError } from 'axios';
 
 interface Document {
   name: string;
@@ -70,9 +71,9 @@ export default function Home() {
       setUploadMessage({ type: 'success', text: `"${file.name}" indexed successfully` });
       await loadDocuments();
       e.target.value = '';
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      const errorMsg = error.response?.data?.detail || 'Upload error';
+      const errorMsg = isAxiosError(error) ? error.response?.data?.detail || 'Upload error' : 'Upload error';
       setUploadMessage({ type: 'error', text: `${errorMsg}` });
     } finally {
       setUploading(false);
@@ -106,9 +107,9 @@ export default function Home() {
       const res = await api.post('/ask', { question });
       setAnswer(res.data);
       setQuestion('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      alert(`Error: ${error.response?.data?.detail || 'AI is not responding'}`);
+      alert(`Error: ${isAxiosError(error) ? error.response?.data?.detail || 'AI is not responding' : 'AI is not responding'}`);
     } finally {
       setLoading(false);
     }
