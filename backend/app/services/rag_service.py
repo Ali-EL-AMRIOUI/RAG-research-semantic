@@ -1,38 +1,76 @@
-import os
-import tempfile
+"""
+Core RAG service: retrieval + LLM generation.
+
+Changes vs the previous version:
+- ingest() used to be a stub (`print(...); return 1`) that never loaded,
+  chunked, or indexed anything, while IngestionService (a separate file)
+  did the real work. Two ingestion paths, only one of them real. Fixed:
+  ingest() now delegates to IngestionService (text/PDF) or
+  ImageEmbeddingService (images).
+- The reranker was loaded into memory in __init__ but never called in
+  search()/run() - paying the load cost for nothing. Fixed: called in
+  search() when use_reranker=True.
+- run()/search() did not accept a per-request use_hybrid/use_reranker
+  override; added as optional parameters.
+- OpenAI CLIP (2021) was hardcoded here, duplicating
+  image_embedding_service.py, which did nothing. Replaced by a single
+  real service: ImageEmbeddingService (OpenCLIP/LAION), used here by
+  composition.
+- print() -> logger everywhere, consistent with the rest of the repo.
+- _store_image_point() sent an unnamed vector (`vector=embedding`) to a
+  Qdrant collection configured with named vectors -> 400 Bad Request
+  "Not existing vector name" on every image upload. Fixed:
+  `vector={"dense": embedding}`.
+- NEW: the image payload had no semantic content
+  (`"text": f"Image file: {filename}"`), so it was invisible to the
+  reranker and to normal hybrid search - images were never retrieved by
+  a text question. A real description is now generated at ingestion time
+  via Groq Vision (qwen/qwen3.6-27b, OCR + caption) and indexed in the
+  main TEXT collection, benefiting from the same hybrid search + reranker
+  pipeline already validated for PDFs. CLIP is kept as a secondary
+  channel (pure visual similarity, not text-based search).
+"""
+import base64
+import logging
 import uuid
-import traceback
 from io import BytesIO
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 
-from qdrant_client import QdrantClient
+from groq import Groq
 from qdrant_client.http import models
-from langchain_groq import ChatGroq
+from app.services.llm_service import LLMService
 from dotenv import load_dotenv
-import clip
-import torch
-from PIL import Image
 
-from app.utils.document_loader import IndustrialDocumentLoader
-from app.utils.chunking import IndustrialChunker
 from app.services.embedding_service import IndustrialEmbeddingService
-from app.db.vector_store import IndustrialVectorStore
+from app.services.image_embedding_service import ImageEmbeddingService
+from app.services.ingestion_service import IngestionService
 from app.services.rerank_service import IndustrialReranker
+from app.db.vector_store import IndustrialVectorStore
 from app.core.config import (
     GROQ_API_KEY, QDRANT_HOST, QDRANT_PORT, QDRANT_COLLECTION_NAME,
     EMBEDDING_MODEL, LLM_MODEL, LLM_TEMPERATURE, CHUNK_SIZE, CHUNK_OVERLAP,
-    USE_RERANKER, RERANKER_MODEL
+    USE_RERANKER, RERANKER_MODEL, TOP_K, TOP_N, SCORE_THRESHOLD, USE_HYBRID_SEARCH
 )
+from app.core.logging import PerformanceLogger
 
-TOP_K = 10
-TOP_N = 5
+logger = logging.getLogger(__name__)
+perf_logger = PerformanceLogger("rag_service")
+
+# Previously hardcoded here (TOP_K=10, TOP_N=5) instead of imported from
+# config.py, which already defines TOP_K=10, TOP_N=3 - silent divergence:
+# .env had no effect on these values.
+DEFAULT_TOP_K = TOP_K
+DEFAULT_TOP_N = TOP_N
+DEFAULT_SCORE_THRESHOLD = SCORE_THRESHOLD
+
+VISION_MODEL = "qwen/qwen3.6-27b"  # Groq multimodal model (OCR + caption + JSON mode)
 
 load_dotenv()
 
 
 class IndustrialRAGService:
-    
+
     def __init__(
         self,
         embedding_model: str = EMBEDDING_MODEL,
@@ -45,95 +83,130 @@ class IndustrialRAGService:
         use_reranker: bool = USE_RERANKER,
         use_cache: bool = True
     ):
-        print("Initializing RAG service...")
-        
+        logger.info("Initializing RAG service...")
+
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.text_collection_name = collection_name
         self.image_collection_name = f"{collection_name}_images"
         self.use_reranker = use_reranker
-        self.top_k = TOP_K
-        self.top_n = TOP_N
-        
-        self.embedder = IndustrialEmbeddingService(
-            model_name=embedding_model,
+        self.default_top_k = DEFAULT_TOP_K
+        self.default_top_n = DEFAULT_TOP_N
+
+        # Text pipeline: a single ingestion/search path, shared with the
+        # CLI script and the upload API.
+        self.ingestion_service = IngestionService(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            embedding_model=embedding_model,
             use_cache=use_cache,
-            batch_size=32
-        )
-        print(f"Text embedder loaded: {embedding_model}")
-        
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
-        self.clip_model.eval()
-        print(f"CLIP image embedder loaded on {self.device}, dimension 512")
-        
-        try:
-            self.llm = ChatGroq(
-                model_name=llm_model,
-                temperature=LLM_TEMPERATURE,
-                groq_api_key=GROQ_API_KEY
-            )
-            print(f"LLM Groq loaded: {llm_model}")
-        except Exception as e:
-            print(f"Error loading LLM: {e}")
-            self.llm = None
-        
-        self.vector_store = IndustrialVectorStore(
-            host=qdrant_host,
-            port=qdrant_port,
+            qdrant_host=qdrant_host,
+            qdrant_port=qdrant_port,
             collection_name=self.text_collection_name,
-            vector_dim=self.embedder.get_dimension(),
-            use_hybrid_search=True
         )
-        
+        self.embedder: IndustrialEmbeddingService = self.ingestion_service.embedder
+        self.vector_store: IndustrialVectorStore = self.ingestion_service.vector_store
+        logger.info(f"Text pipeline ready: model={embedding_model}, dim={self.embedder.get_dimension()}")
+
+        # Image pipeline: lazily loaded on first real use, to avoid paying
+        # the GPU/memory cost if the app only ever serves text.
+        self._image_embedder: Optional[ImageEmbeddingService] = None
         self.image_vector_store = IndustrialVectorStore(
             host=qdrant_host,
             port=qdrant_port,
             collection_name=self.image_collection_name,
-            vector_dim=512,
+            vector_dim=512,  # OpenCLIP ViT-B-32 dimension, see image_embedding_service.py
             use_hybrid_search=False
         )
-        
+
+        # Groq Vision client, lazily loaded (same pattern as image_embedder
+        # above) - no cost if no image is ever uploaded.
+        self._vision_client: Optional[Groq] = None
+
+        self.llm_service = LLMService(model_name=llm_model, temperature=LLM_TEMPERATURE)
+        if not self.llm_service.is_available:
+            logger.warning("LLM unavailable - check GROQ_API_KEY")
+
+        self.reranker: Optional[IndustrialReranker] = None
         if use_reranker:
             try:
                 self.reranker = IndustrialReranker(model_name=RERANKER_MODEL)
-                print(f"Reranker loaded: {RERANKER_MODEL}")
+                logger.info(f"Reranker loaded: {RERANKER_MODEL}")
             except Exception as e:
-                print(f"Reranker not available: {e}")
+                logger.warning(f"Reranker not available: {e}")
                 self.use_reranker = False
-        
-        self.doc_loader = IndustrialDocumentLoader(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            use_cache=use_cache
-        )
-        
-        self.chunker = IndustrialChunker(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            preserve_tables=True,
-            preserve_code_blocks=True
-        )
-        
-        print("RAG service ready\n")
-    
-    def _embed_image(self, image_bytes: bytes) -> List[float]:
-        try:
-            image = Image.open(BytesIO(image_bytes)).convert("RGB")
-            image_input = self.clip_preprocess(image).unsqueeze(0).to(self.device)
-            with torch.no_grad():
-                embedding = self.clip_model.encode_image(image_input)
-                embedding = embedding.cpu().numpy().flatten().tolist()
-            return embedding
-        except Exception as e:
-            print(f"Error embedding image: {e}")
-            return [0.0] * 512
-    
+
+        logger.info("RAG service ready")
+
+    @property
+    def image_embedder(self) -> ImageEmbeddingService:
+        if self._image_embedder is None:
+            self._image_embedder = ImageEmbeddingService()
+        return self._image_embedder
+
+    @property
+    def vision_client(self) -> Groq:
+        if self._vision_client is None:
+            self._vision_client = Groq(api_key=GROQ_API_KEY)
+        return self._vision_client
+
     def _is_image_file(self, filename: str) -> bool:
         ext = Path(filename).suffix.lower()
         return ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
-    
-    def _store_image_point(self, filename: str, image_bytes: bytes, embedding: List[float]) -> int:
+
+    def _caption_image(self, file_stream: BytesIO, filename: str) -> str:
+        """
+        Generate a real text description of the image via Groq Vision
+        (OCR + caption). Replaces the "Image file: {filename}" placeholder,
+        which had no semantic content comparable to a query - hence
+        invisible to the reranker regardless of score_threshold.
+
+        Falls back to the old placeholder if the Vision call fails, rather
+        than failing the whole upload.
+        """
+        ext = Path(filename).suffix.lower().lstrip(".")
+        mime = "jpeg" if ext in ("jpg", "jpeg") else ext
+
+        file_stream.seek(0)
+        b64_image = base64.b64encode(file_stream.read()).decode("utf-8")
+        file_stream.seek(0)
+
+        try:
+            completion = self.vision_client.chat.completions.create(
+                model=VISION_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    "Describe precisely what this image contains, in French. "
+                                    "If it contains text (document, screenshot, poster, form), "
+                                    "transcribe it fully and faithfully. "
+                                    "Be factual and thorough, no speculation."
+                                )
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/{mime};base64,{b64_image}"}
+                            }
+                        ]
+                    }
+                ],
+                temperature=0.2,
+                max_completion_tokens=1024,
+            )
+            caption = (completion.choices[0].message.content or "").strip()
+            if not caption:
+                raise ValueError("Empty caption returned by vision model")
+            logger.info(f"Vision caption generated for {filename} ({len(caption)} characters)")
+            return caption
+        except Exception as e:
+            logger.error(f"Vision captioning failed for {filename}: {e}")
+            return f"Image file: {filename}"
+
+    def _store_image_point(self, filename: str, embedding: List[float]) -> int:
         point_id = str(uuid.uuid4())
         try:
             self.image_vector_store.client.upsert(
@@ -141,51 +214,85 @@ class IndustrialRAGService:
                 points=[
                     models.PointStruct(
                         id=point_id,
-                        vector=embedding,
-                        payload={
-                            "filename": filename,
-                            "modality": "image",
-                            "text": f"Image file: {filename}",
-                        }
+                        vector={"dense": embedding},
+                        payload={"filename": filename, "modality": "image", "text": f"Image file: {filename}"}
                     )
                 ]
             )
-            print(f"Image point stored in {self.image_collection_name}: {filename}")
+            logger.info(f"Image point stored in {self.image_collection_name}: {filename}")
             return 1
         except Exception as e:
-            print(f"Qdrant upsert failed for image {filename}: {e}")
+            logger.error(f"Qdrant upsert failed for image {filename}: {e}")
             return 0
-    
 
-    def ingest(self, file_stream: BytesIO, filename: str) -> int:
+    def ingest(self, file_stream: BytesIO, filename: str, metadata: Optional[Dict[str, Any]] = None) -> int:
+        """
+        Real ingestion (text or image depending on extension).
+
+        Images: Groq Vision caption -> indexed in the main TEXT collection
+        (hybrid search + reranker already validated there). CLIP is kept
+        as well, in the separate image collection, for pure visual
+        similarity (not text-based search).
+        """
         try:
-            print(f"Ingestion started for {filename}")
-            return 1
+            logger.info(f"Ingestion started for {filename}")
+
+            if self._is_image_file(filename):
+                caption = self._caption_image(file_stream, filename)
+
+                indexed = self.ingestion_service.ingest_text(
+                    text=caption,
+                    metadata={**(metadata or {}), "filename": filename, "modality": "image"},
+                    source=filename
+                )
+
+                file_stream.seek(0)
+                embedding = self.image_embedder.embed_image(file_stream)
+                self._store_image_point(filename, embedding)
+
+                return indexed
+
+            return self.ingestion_service.ingest_pdf_stream(file_stream, filename, metadata=metadata)
+
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Ingestion error for {filename}: {e}")
             return 0
-    
-    def search(self, query: str, limit: int = TOP_K) -> List[Dict[str, Any]]:
+
+    def search(
+        self,
+        query: str,
+        limit: Optional[int] = None,
+        use_hybrid: Optional[bool] = None,
+        use_reranker: Optional[bool] = None
+    ) -> List[Dict[str, Any]]:
+        limit = limit or self.default_top_k
+        apply_hybrid = use_hybrid if use_hybrid is not None else self.vector_store.use_hybrid_search
+        apply_reranker = (use_reranker if use_reranker is not None else self.use_reranker) and self.reranker is not None
+
+        import time
+        search_start = time.perf_counter()
+
         query_vector = self.embedder.embed_query(query)
 
-        text_results = self.vector_store.search_vector(
-            query_vector=query_vector,
-            limit=limit,
-            score_threshold=0.1
-        )
+        if apply_hybrid:
+            text_results = self.vector_store.search_hybrid(
+                query_vector=query_vector, query_text=query, limit=limit, score_threshold=DEFAULT_SCORE_THRESHOLD
+            )
+        else:
+            text_results = self.vector_store.search_vector(
+                query_vector=query_vector, limit=limit, score_threshold=DEFAULT_SCORE_THRESHOLD
+            )
 
         image_results = []
         try:
+            image_query_vector = self.image_embedder.embed_text_query(query)
             image_results = self.image_vector_store.search_vector(
-                query_vector=query_vector,
-                limit=limit // 2,
-                score_threshold=0.1
+                query_vector=image_query_vector, limit=max(limit // 2, 1), score_threshold=DEFAULT_SCORE_THRESHOLD
             )
         except Exception as e:
-            print(f"Image search failed: {e}")
+            logger.warning(f"Image search failed: {e}")
 
         all_results = []
-
         for r in text_results:
             all_results.append({
                 "text": r.content,
@@ -194,7 +301,6 @@ class IndustrialRAGService:
                 "page": r.metadata.get("page", 0),
                 "metadata": r.metadata
             })
-
         for r in image_results:
             all_results.append({
                 "text": r.metadata.get("text", "Image file"),
@@ -205,20 +311,44 @@ class IndustrialRAGService:
             })
 
         all_results.sort(key=lambda x: x["score"], reverse=True)
+        all_results = all_results[:limit]
 
-        return all_results[:limit]
+        search_duration_ms = (time.perf_counter() - search_start) * 1000
+        perf_logger.log_search_time(query=query, results=len(all_results), duration_ms=search_duration_ms)
 
-    def run(self, query: str, limit: int = TOP_N) -> Dict[str, Any]:
-        print(f"Processing Query: {query}")
+        # The reranker used to be instantiated in __init__ but never
+        # actually called here - paying the model load cost for nothing.
+        if apply_reranker and all_results:
+            rerank_start = time.perf_counter()
+            all_results = self.reranker.rerank_search_results(
+                query=query, search_results=all_results, top_n=min(len(all_results), self.default_top_n)
+            )
+            rerank_duration_ms = (time.perf_counter() - rerank_start) * 1000
+            perf_logger.log_rerank_time(count=len(all_results), duration_ms=rerank_duration_ms)
 
-        chunks = self.search(query, limit=self.top_k)
+        return all_results
+
+    def run(
+        self,
+        query: str,
+        top_k: Optional[int] = None,
+        top_n: Optional[int] = None,
+        use_hybrid: Optional[bool] = None,
+        use_reranker: Optional[bool] = None
+    ) -> Dict[str, Any]:
+        logger.info(f"Processing query: {query}")
+
+        top_k = top_k or self.default_top_k
+        top_n = top_n or self.default_top_n
+
+        chunks = self.search(query, limit=top_k, use_hybrid=use_hybrid, use_reranker=use_reranker)
 
         sources_for_response = []
         if chunks:
-            top_chunks = chunks[:limit]
+            top_chunks = chunks[:top_n]
             context_parts = [f"[Source: {c.get('filename', 'Unknown')}] {c.get('text', '')}" for c in top_chunks]
             context = "\n\n---\n\n".join(context_parts)
-            
+
             for c in top_chunks:
                 sources_for_response.append({
                     "content": c.get('text', ''),
@@ -228,9 +358,8 @@ class IndustrialRAGService:
                 })
         else:
             context = "No relevant documents found in the knowledge base."
-            sources_for_response = []
 
-        prompt = f"""You are a professional and friendly Industrial AI Assistant.
+        prompt = f"""You are a professional and friendly AI Assistant for document search.
 
 PROVIDED CONTEXT FROM KNOWLEDGE BASE:
 {context}
@@ -239,42 +368,45 @@ USER QUESTION: {query}
 
 RESPONSE GUIDELINES:
 1. If the user greets you or engages in small talk, respond politely as a chatbot.
-2. If the question is about technical details found in the CONTEXT, provide a precise answer based on the documents.
+2. If the question is about details found in the CONTEXT, provide a precise answer based on the documents, citing the source filename.
 3. If the information is NOT in the CONTEXT, clearly state that it is not in the indexed documents, but provide a helpful answer using your general knowledge if possible.
 4. Always maintain a professional and supportive tone.
 """
 
         try:
-            if self.llm is None:
-                raise Exception("LLM not initialized")
-                
-            response = self.llm.invoke(prompt)
-            answer = response.content
-            print(f"Response generated ({len(answer)} characters)")
+            import time
+            llm_start = time.perf_counter()
+            answer = self.llm_service.generate(prompt)
+            llm_duration_ms = (time.perf_counter() - llm_start) * 1000
+
+            usage = self.llm_service.last_usage
+            perf_logger.log_llm_time(
+                prompt_tokens=usage.get("input_tokens", 0),
+                response_tokens=usage.get("output_tokens", 0),
+                duration_ms=llm_duration_ms
+            )
+            logger.info(f"Response generated ({len(answer)} characters, {llm_duration_ms:.0f}ms)")
         except Exception as e:
-            print(f"LLM error: {e}")
-            answer = f"I'm sorry, I encountered an error: {str(e)}"
+            logger.error(f"LLM error: {e}")
+            answer = f"I'm sorry, I encountered an error generating a response: {e}"
 
         return {
             "answer": answer,
             "source_documents": sources_for_response,
-            "sources_details": chunks[:limit] if chunks else [],
+            "sources_details": chunks[:top_n] if chunks else [],
             "processing_time_ms": None
         }
-    
+
     def get_all_documents(self) -> List[Dict[str, Any]]:
         documents = {}
 
-        def process_collection(collection_name: str):
+        def process_collection(collection_name: str, vector_store: IndustrialVectorStore):
             try:
                 next_offset = None
                 while True:
-                    scroll_result = self.vector_store.client.scroll(
-                        collection_name=collection_name,
-                        limit=1000,
-                        offset=next_offset,
-                        with_payload=True,
-                        with_vectors=False
+                    scroll_result = vector_store.client.scroll(
+                        collection_name=collection_name, limit=1000, offset=next_offset,
+                        with_payload=True, with_vectors=False
                     )
                     batch, next_offset = scroll_result
                     for point in batch:
@@ -285,134 +417,41 @@ RESPONSE GUIDELINES:
                     if next_offset is None:
                         break
             except Exception as e:
-                print(f"Error scrolling {collection_name}: {e}")
+                logger.error(f"Error scrolling {collection_name}: {e}")
 
-        process_collection(self.text_collection_name)
-        process_collection(self.image_collection_name)
+        process_collection(self.text_collection_name, self.vector_store)
+        process_collection(self.image_collection_name, self.image_vector_store)
 
         result = list(documents.values())
-        print(f"Documents found: {len(result)}")
-        for doc in result:
-            print(f"   - {doc['name']}: {doc['chunks']} chunks")
+        logger.info(f"Documents found: {len(result)}")
         return result
-    
+
     def delete_document(self, filename: str) -> int:
-        deleted_count = 0
-        
-        try:
-            scroll_result = self.vector_store.client.scroll(
-                collection_name=self.text_collection_name,
-                limit=10000,
-                with_payload=True,
-                scroll_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="filename",
-                            match=models.MatchValue(value=filename)
-                        )
-                    ]
-                )
-            )
-            
-            point_ids = [point.id for point in scroll_result[0]]
-            if point_ids:
-                self.vector_store.client.delete(
-                    collection_name=self.text_collection_name,
-                    points_selector=models.PointIdsList(points=point_ids)
-                )
-                deleted_count += len(point_ids)
-                print(f"Deleted from text collection: {filename} ({len(point_ids)} chunks)")
-        except Exception as e:
-            print(f"Error deleting from text collection: {e}")
-        
-        try:
-            scroll_result = self.image_vector_store.client.scroll(
-                collection_name=self.image_collection_name,
-                limit=10000,
-                with_payload=True,
-                scroll_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="filename",
-                            match=models.MatchValue(value=filename)
-                        )
-                    ]
-                )
-            )
-            
-            point_ids = [point.id for point in scroll_result[0]]
-            if point_ids:
-                self.image_vector_store.client.delete(
-                    collection_name=self.image_collection_name,
-                    points_selector=models.PointIdsList(points=point_ids)
-                )
-                deleted_count += len(point_ids)
-                print(f"Deleted from image collection: {filename} ({len(point_ids)} chunks)")
-        except Exception as e:
-            print(f"Error deleting from image collection: {e}")
-        
+        deleted_count = self.vector_store.delete_documents(filter_conditions={"filename": filename})
+        deleted_count += self.image_vector_store.delete_documents(filter_conditions={"filename": filename})
         if deleted_count == 0:
-            print(f"No chunks found for: {filename}")
-        
+            logger.info(f"No chunks found for: {filename}")
         return deleted_count
-    
+
     def get_stats(self) -> Dict[str, Any]:
         try:
-            text_info = self.vector_store.client.get_collection(
-                collection_name=self.text_collection_name
-            )
-            image_info = self.image_vector_store.client.get_collection(
-                collection_name=self.image_collection_name
-            )
+            text_stats = self.vector_store.get_collection_stats()
+            image_stats = self.image_vector_store.get_collection_stats()
             return {
                 "text_collection": {
                     "name": self.text_collection_name,
-                    "total_points": text_info.points_count,
+                    "total_points": text_stats.get("points_count"),
                 },
                 "image_collection": {
                     "name": self.image_collection_name,
-                    "total_points": image_info.points_count,
+                    "total_points": image_stats.get("points_count"),
                 },
                 "status": "healthy"
             }
         except Exception as e:
             return {"error": str(e), "status": "error"}
-    
+
     def clear_collection(self) -> int:
-        deleted_count = 0
-        
-        try:
-            scroll_result = self.vector_store.client.scroll(
-                collection_name=self.text_collection_name,
-                limit=10000,
-                with_payload=False
-            )
-            point_ids = [point.id for point in scroll_result[0]]
-            if point_ids:
-                self.vector_store.client.delete(
-                    collection_name=self.text_collection_name,
-                    points_selector=models.PointIdsList(points=point_ids)
-                )
-                deleted_count += len(point_ids)
-            print(f"Text collection cleared: {len(point_ids)} points deleted")
-        except Exception as e:
-            print(f"Error clearing text collection: {e}")
-        
-        try:
-            scroll_result = self.image_vector_store.client.scroll(
-                collection_name=self.image_collection_name,
-                limit=10000,
-                with_payload=False
-            )
-            point_ids = [point.id for point in scroll_result[0]]
-            if point_ids:
-                self.image_vector_store.client.delete(
-                    collection_name=self.image_collection_name,
-                    points_selector=models.PointIdsList(points=point_ids)
-                )
-                deleted_count += len(point_ids)
-            print(f"Image collection cleared: {len(point_ids)} points deleted")
-        except Exception as e:
-            print(f"Error clearing image collection: {e}")
-        
+        deleted_count = self.vector_store.clear_collection()
+        deleted_count += self.image_vector_store.clear_collection()
         return deleted_count

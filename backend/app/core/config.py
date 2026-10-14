@@ -1,4 +1,5 @@
 import os
+import logging
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import Optional
@@ -8,14 +9,25 @@ ENV_PATH = BASE_DIR / ".env"
 
 load_dotenv(dotenv_path=ENV_PATH)
 
+logger = logging.getLogger(__name__)
+
 HF_TOKEN: Optional[str] = os.getenv("HF_TOKEN")
 GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    print("Warning: GROQ_API_KEY not found in .env (required for LLM)")
+    logger.warning("GROQ_API_KEY not found in .env (required for LLM)")
 
 os.environ["HF_TOKEN"] = HF_TOKEN or ""
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY or ""
+
+# NEW — shared-secret key for app.core.security.verify_api_key(). Protects
+# write/costly endpoints (/upload, /ask, /clear, DELETE /documents) from
+# anonymous use now that the API is reachable via kubernetes/ingress.yaml.
+# Left unset in local dev on purpose (no key required against localhost);
+# must be set before exposing the API beyond your own machine.
+API_KEY: Optional[str] = os.getenv("API_KEY", None)
+if not API_KEY:
+    logger.warning("API_KEY not set — protected endpoints will run without authentication")
 
 QDRANT_HOST: str = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT: int = int(os.getenv("QDRANT_PORT", "6333"))
@@ -71,6 +83,7 @@ CACHE_TTL: int = int(os.getenv("CACHE_TTL", "86400"))
 
 DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 TESTING: bool = os.getenv("TESTING", "False").lower() in ("true", "1", "yes")
+
 
 def get_config_dict() -> dict:
     return {

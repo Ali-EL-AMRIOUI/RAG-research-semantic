@@ -5,7 +5,9 @@ python-dotenv
 pydantic
 pypdf
 qdrant-client
-sentence-transformers
+torch==2.4.1
+transformers==4.46.3
+sentence-transformers==3.3.1
 rank-bm25
 langchain
 langchain-community
@@ -18,5 +20,7 @@ tqdm
 tiktoken
 pytesseract
 pillow
+open-clip-torch
+fastembed
 unstructured[all-pdf]
 clip @ git+https://github.com/openai/CLIP.git

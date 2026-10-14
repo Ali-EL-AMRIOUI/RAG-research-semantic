@@ -19,16 +19,35 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: rag-config
         env:
         - name: GROQ_API_KEY
           valueFrom:
             secretKeyRef:
               name: groq-secret
               key: api-key
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-auth-secret
+              key: api-key
         - name: QDRANT_HOST
           value: "qdrant-service"
         - name: QDRANT_PORT
           value: "6333"
+        # Moved here from under the Service below — "resources" isn't a
+        # valid field on a Service or on a port entry, only on a container.
+        # kubectl apply with validation on would have rejected the old
+        # manifest outright ("unknown field resources").
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
 ---
 apiVersion: v1
 kind: Service
@@ -41,10 +60,3 @@ spec:
   ports:
   - port: 8000
     targetPort: 8000
-    resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"

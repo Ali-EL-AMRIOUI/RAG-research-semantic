@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-08-03T12:18:01.341476+00:00",
+  "num_queries": 6,
+  "avg_keyword_match_rate": 1.0,
+  "details": [
+    {
+      "id": "q001",
+      "question": "Quel modèle de machine learning est utilisé pour prédire la RUL ?",
+      "answer": "Bonjour ! Je suis ravi de vous aider avec votre question.\n\nSelon le document [Rapport_Resume_Projet_Predictive_Maintenance.pdf], le modèle de machine learning utilisé pour prédire la Remaining Useful Life (RUL) est XGBoost. Ce choix a été motivé par ses performances sur les données tabulaires, sa robustesse, sa rapidité et sa compatibilité avec SHAP, un outil d'explicabilité des modèles de machine learning.\n\nLes hyperparamètres du modèle XGBoost ont également été optimisés avec Optuna pour améliorer les performances du modèle.\n\nJ'espère que cela répond à votre question ! Si vous avez d'autres interrogations, n'hésitez pas à me demander.",
+      "expected_keywords": [
+        "XGBoost"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q002",
+      "question": "Quel jeu de données est utilisé pour ce projet de maintenance prédictive ?",
+      "answer": "Bonjour ! Je suis ravi de vous aider avec votre question.\n\nSelon le document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\", le jeu de données utilisé pour ce projet de maintenance prédictive est le jeu de données NASA CMAPSS.\n\nSource : Rapport_Resume_Projet_Predictive_Maintenance.pdf\n\nJ'espère que cela répond à votre question. N'hésitez pas à me poser d'autres questions si vous avez besoin de plus d'informations !",
+      "expected_keywords": [
+        "NASA",
+        "CMAPSS"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q003",
+      "question": "Quelles métriques sont utilisées pour évaluer la précision et la sécurité des prédictions ?",
+      "answer": "Bonjour ! Je suis ravi de vous aider avec votre question.\n\nSelon le document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\", les métriques utilisées pour évaluer la précision et la sécurité des prédictions sont les suivantes : RMSE, MAE, NASA Score et Pinball Loss.\n\nCes métriques permettent d'évaluer à la fois la précision et la sécurité des prédictions, comme indiqué dans le document. La sécurité est également renforcée par l'ajout d'un modèle de régression quantile produisant une Safety RUL plus conservatrice pour les décisions de maintenance.\n\nJ'espère que cela répond à votre question ! Si vous avez d'autres interrogations, n'hésitez pas à me demander.",
+      "expected_keywords": [
+        "RMSE",
+        "NASA Score"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q004",
+      "question": "Comment le projet assure-t-il l'explicabilité des prédictions du modèle ?",
+      "answer": "Pour assurer l'explicabilité des prédictions du modèle, le projet intègre SHAP (Source: Rapport_Resume_Projet_Predictive_Maintenance.pdf). SHAP est une technique utilisée pour expliquer les prédictions des modèles de machine learning en attribuant une valeur à chaque variable d'entrée pour chaque prédiction, permettant ainsi d'identifier les variables qui influencent le plus les prédictions. Cela aide à comprendre pourquoi le modèle prend certaines décisions, améliorant ainsi la transparence et la confiance dans les prédictions. Cette approche est particulièrement importante dans le contexte de la maintenance prédictive, où comprendre les facteurs qui contribuent à la prédiction de la Remaining Useful Life (RUL) des moteurs d'avion est crucial pour prendre des décisions éclairées en matière de maintenance.",
+      "expected_keywords": [
+        "SHAP"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q005",
+      "question": "Quel outil a été utilisé pour optimiser les hyperparamètres du modèle ?",
+      "answer": "Pour optimiser les hyperparamètres du modèle, l'outil utilisé est Optuna, comme indiqué dans le document \"Rapport_Resume_Projet_Predictive_Maintenance.pdf\". Ce document précise que les hyperparamètres ont été optimisés avec Optuna pour le modèle XGBoost. \n\nSi vous avez d'autres questions ou besoin de plus d'informations, n'hésitez pas à me demander. Je suis là pour vous aider.",
+      "expected_keywords": [
+        "Optuna"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    },
+    {
+      "id": "q006",
+      "question": "Quelles technologies sont utilisées pour déployer l'application en production ?",
+      "answer": "Pour déployer l'application en production, les technologies utilisées incluent API FastAPI, interface Streamlit, suivi des expériences avec MLflow, Docker et préparation Kubernetes, comme indiqué dans le document [Rapport_Resume_Projet_Predictive_Maintenance.pdf]. Ces outils permettent une mise en production robuste et scalable, ainsi qu'un suivi efficace des performances et des expériences.",
+      "expected_keywords": [
+        "Docker",
+        "Kubernetes",
+        "FastAPI"
+      ],
+      "keyword_match_rate": 1.0,
+      "num_sources": 3
+    }
+  ]
+}

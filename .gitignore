@@ -1,37 +1,26 @@
-# Python / Environnement
+# Python
 .venv/
+venv/
 __pycache__/
-*.py[cod]
-*.class
-*.pkl
-.pytest_cache/
-.mypy_cache/
+*.pyc
 
-# Projet RAG / Données (chemins corrigés)
+# Node
+node_modules/
+.next/
+
+# Qdrant data
+qdrant_storage/
+qdrant_data/
+
+# Caches
 backend/cache/
 backend/cache_documents/
-backend/data/raw/
-backend/data/processed/
-backend/data/embeddings/
-qdrant_data/
-minikube-linux-amd64
+backend/cache_embeddings/
+
+# Env
 .env
+.env.local
+.env.*.local
 
-# Frontend
-node_modules/
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-dist/
-build/
-coverage/
-.turbo/
-
-# Secrets Kubernetes
-kubernetes/secret.yaml
-!kubernetes/secret.yaml.example
-# Divers
-*.log
-.DS_Store
-qdrant_storage/
-backend/qdrant_storage/
+# Evaluation reports history (à toi de voir si tu veux les versionner)
+# evaluation/reports/history/

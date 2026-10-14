@@ -1,0 +1,95 @@
+{
+  "recall_at_k": 1.0,
+  "precision_at_k": 0.3666666666666667,
+  "mrr": 1.0,
+  "hit_rate_at_k": 1.0,
+  "k": 5,
+  "num_queries": 6,
+  "timestamp": "2026-08-03T12:16:26.286802+00:00",
+  "details": [
+    {
+      "id": "q001",
+      "question": "Quel modèle de machine learning est utilisé pour prédire la RUL ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q002",
+      "question": "Quel jeu de données est utilisé pour ce projet de maintenance prédictive ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q003",
+      "question": "Quelles métriques sont utilisées pour évaluer la précision et la sécurité des prédictions ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q004",
+      "question": "Comment le projet assure-t-il l'explicabilité des prédictions du modèle ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "rapport agrégation.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q005",
+      "question": "Quel outil a été utilisé pour optimiser les hyperparamètres du modèle ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "rapport agrégation.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    },
+    {
+      "id": "q006",
+      "question": "Quelles technologies sont utilisées pour déployer l'application en production ?",
+      "retrieved_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf",
+        "rapport agrégation.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "Preparation_Entretien_Memoire_Statistique.pdf",
+        "قرار فتح المباراة.pdf"
+      ],
+      "relevant_filenames": [
+        "Rapport_Resume_Projet_Predictive_Maintenance.pdf"
+      ]
+    }
+  ]
+}
