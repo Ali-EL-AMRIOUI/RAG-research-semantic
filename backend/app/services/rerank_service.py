@@ -1,6 +1,7 @@
 import logging
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, ClassVar
+
 from sentence_transformers import CrossEncoder
 
 logger = logging.getLogger(__name__)
@@ -11,9 +12,9 @@ class RerankedResult:
     text: str
     score: float
     original_index: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "text": self.text,
             "score": self.score,
@@ -24,7 +25,7 @@ class RerankedResult:
 
 class IndustrialReranker:
 
-    SUPPORTED_MODELS = {
+    SUPPORTED_MODELS: ClassVar[dict[str, dict]] = {
         "cross-encoder/ms-marco-MiniLM-L-6-v2": {
             "dimension": 384, "speed": "fast", "accuracy": "good",
             "description": "Good speed/accuracy balance"
@@ -56,7 +57,7 @@ class IndustrialReranker:
     def __init__(
         self,
         model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        device: Optional[str] = None,
+        device: str | None = None,
         batch_size: int = 32,
         default_top_n: int = 3
     ):
@@ -91,15 +92,15 @@ class IndustrialReranker:
                 self.model_name = "cross-encoder/ms-marco-MiniLM-L-6-v2"
                 self.model_info = self.SUPPORTED_MODELS[self.model_name]
             else:
-                raise e
+                raise
 
     def rerank(
         self,
         query: str,
-        documents: List[str],
-        top_n: Optional[int] = None,
+        documents: list[str],
+        top_n: int | None = None,
         return_scores: bool = False,
-        threshold: Optional[float] = None
+        threshold: float | None = None
     ):
         if not documents:
             return []
@@ -137,11 +138,11 @@ class IndustrialReranker:
     def rerank_with_metadata(
         self,
         query: str,
-        documents: List[Dict[str, Any]],
+        documents: list[dict[str, Any]],
         text_key: str = "text",
-        top_n: Optional[int] = None,
-        threshold: Optional[float] = None
-    ) -> List[Dict[str, Any]]:
+        top_n: int | None = None,
+        threshold: float | None = None
+    ) -> list[dict[str, Any]]:
         if not documents:
             return []
 
@@ -160,10 +161,10 @@ class IndustrialReranker:
     def rerank_search_results(
         self,
         query: str,
-        search_results: List[Dict[str, Any]],
-        top_n: Optional[int] = None,
-        threshold: Optional[float] = None
-    ) -> List[Dict[str, Any]]:
+        search_results: list[dict[str, Any]],
+        top_n: int | None = None,
+        threshold: float | None = None
+    ) -> list[dict[str, Any]]:
         text_key = "text" if search_results and "text" in search_results[0] else "content"
 
         return self.rerank_with_metadata(
@@ -174,7 +175,7 @@ class IndustrialReranker:
             threshold=threshold
         )
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         return {
             "model_name": self.model_name,
             "device": self.device,
@@ -184,7 +185,7 @@ class IndustrialReranker:
         }
 
     @classmethod
-    def get_available_models(cls) -> List[str]:
+    def get_available_models(cls) -> list[str]:
         return list(cls.SUPPORTED_MODELS.keys())
 
     @classmethod

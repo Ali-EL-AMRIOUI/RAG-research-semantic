@@ -1,7 +1,5 @@
 import logging
 import sys
-from typing import Optional
-from datetime import datetime
 from pathlib import Path
 
 SIMPLE_FORMAT = "%(levelname)s - %(message)s"
@@ -11,11 +9,13 @@ JSON_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+_logger = logging.getLogger(__name__)
+
 
 def setup_logging(
     level: str = "INFO",
     format_type: str = "standard",
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     console: bool = True
 ) -> None:
     log_level = getattr(logging, level.upper(), logging.INFO)
@@ -52,7 +52,7 @@ def setup_logging(
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("qdrant_client").setLevel(logging.WARNING)
     
-    logging.info(f"Logging configured: level={level}, format={format_type}")
+    _logger.info(f"Logging configured: level={level}, format={format_type}")
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -64,7 +64,7 @@ class RequestLogger:
     def __init__(self, name: str = "api"):
         self.logger = get_logger(name)
     
-    def log_request(self, method: str, path: str, client_ip: str = None, **kwargs):
+    def log_request(self, method: str, path: str, client_ip: str | None = None, **kwargs):
         extra = f" [IP: {client_ip}]" if client_ip else ""
         self.logger.info(f"Request {method} {path}{extra} - {kwargs if kwargs else ''}")
     
@@ -73,7 +73,7 @@ class RequestLogger:
         self.logger.info(f"{status_emoji} {method} {path} -> {status_code} ({duration_ms:.2f}ms)")
     
     def log_error(self, method: str, path: str, error: Exception, **kwargs):
-        self.logger.error(f"ERROR {method} {path}: {str(error)} - {kwargs}")
+        self.logger.error(f"ERROR {method} {path}: {error!s} - {kwargs}")
 
 
 class PerformanceLogger:

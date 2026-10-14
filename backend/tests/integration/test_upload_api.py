@@ -3,8 +3,8 @@ Integration tests for POST /upload via FastAPI TestClient. Auto-skipped if
 Qdrant isn't reachable.
 """
 import sys
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 

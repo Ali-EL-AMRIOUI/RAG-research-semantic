@@ -1,9 +1,10 @@
 import logging
 import re
-from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from typing import Any
+
 from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +12,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Chunk:
     text: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    title_path: List[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    title_path: list[str] = field(default_factory=list)
     chunk_index: int = 0
 
     def get_full_title(self) -> str:
@@ -58,7 +59,7 @@ class IndustrialChunker:
 
         logger.info(f"Chunker initialized: size={chunk_size}, overlap={chunk_overlap}")
 
-    def _extract_titles(self, text: str, current_path: Optional[List[str]] = None) -> Tuple[str, List[str]]:
+    def _extract_titles(self, text: str, current_path: list[str] | None = None) -> tuple[str, list[str]]:
         """
         Retire les lignes de titre markdown et retourne le chemin de titre
         résultant, en partant de `current_path` (contexte hérité des
@@ -89,7 +90,7 @@ class IndustrialChunker:
 
         return '\n'.join(cleaned_lines), title_path
 
-    def _protect_blocks(self, text: str) -> Tuple[str, Dict[str, str]]:
+    def _protect_blocks(self, text: str) -> tuple[str, dict[str, str]]:
         placeholders = {}
         protected_text = text
 
@@ -111,7 +112,7 @@ class IndustrialChunker:
 
         return protected_text, placeholders
 
-    def _restore_blocks(self, text: str, placeholders: Dict[str, str]) -> str:
+    def _restore_blocks(self, text: str, placeholders: dict[str, str]) -> str:
         for placeholder, original in placeholders.items():
             text = text.replace(placeholder, original)
         return text
@@ -131,7 +132,7 @@ class IndustrialChunker:
             overlap = overlap[space_idx + 1:]
         return overlap.strip()
 
-    def split_markdown(self, text: str, metadata: Dict = None) -> List[Chunk]:
+    def split_markdown(self, text: str, metadata: dict | None = None) -> list[Chunk]:
         if not text or not text.strip():
             return []
 
@@ -142,7 +143,7 @@ class IndustrialChunker:
 
         chunks = []
         current_chunk = ""
-        current_titles: List[str] = []
+        current_titles: list[str] = []
 
         def flush_chunk():
             """Clôt current_chunk, l'ajoute à chunks, retourne le préfixe d'overlap pour le prochain."""
@@ -221,7 +222,7 @@ class IndustrialChunker:
         logger.info(f"{len(chunks)} chunks created (overlap={self.chunk_overlap})")
         return chunks
 
-    def split_text(self, text: str, source: str = "unknown") -> List[Chunk]:
+    def split_text(self, text: str, source: str = "unknown") -> list[Chunk]:
         chunks = self.fallback_splitter.split_text(text)
         return [
             Chunk(
@@ -233,7 +234,7 @@ class IndustrialChunker:
             for i, chunk in enumerate(chunks)
         ]
 
-    def get_stats(self, chunks: List[Chunk]) -> Dict:
+    def get_stats(self, chunks: list[Chunk]) -> dict:
         if not chunks:
             return {"total_chunks": 0, "avg_size": 0, "min_size": 0, "max_size": 0}
 

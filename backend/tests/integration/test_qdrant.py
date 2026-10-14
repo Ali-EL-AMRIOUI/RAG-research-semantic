@@ -9,8 +9,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.db.vector_store import IndustrialVectorStore  # noqa: E402
-from app.core.config import QDRANT_HOST, QDRANT_PORT  # noqa: E402
+from app.core.config import QDRANT_HOST, QDRANT_PORT
+from app.db.vector_store import IndustrialVectorStore
 
 TEST_COLLECTION = "integration_test_collection"
 

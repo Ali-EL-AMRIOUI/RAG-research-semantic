@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.modules.setdefault("sentence_transformers", MagicMock())
 sys.modules.setdefault("torch", MagicMock())
 
-from app.services.rerank_service import IndustrialReranker  # noqa: E402
+from app.services.rerank_service import IndustrialReranker
 
 
 def _make_mock_cross_encoder(scores):

@@ -34,25 +34,36 @@ import base64
 import logging
 import uuid
 from io import BytesIO
-from typing import List, Optional, Dict, Any
 from pathlib import Path
+from typing import Any
 
+from dotenv import load_dotenv
 from groq import Groq
 from qdrant_client.http import models
-from app.services.llm_service import LLMService
-from dotenv import load_dotenv
 
+from app.core.config import (
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    EMBEDDING_MODEL,
+    GROQ_API_KEY,
+    LLM_MODEL,
+    LLM_TEMPERATURE,
+    QDRANT_COLLECTION_NAME,
+    QDRANT_HOST,
+    QDRANT_PORT,
+    RERANKER_MODEL,
+    SCORE_THRESHOLD,
+    TOP_K,
+    TOP_N,
+    USE_RERANKER,
+)
+from app.core.logging import PerformanceLogger
+from app.db.vector_store import IndustrialVectorStore
 from app.services.embedding_service import IndustrialEmbeddingService
 from app.services.image_embedding_service import ImageEmbeddingService
 from app.services.ingestion_service import IngestionService
+from app.services.llm_service import LLMService
 from app.services.rerank_service import IndustrialReranker
-from app.db.vector_store import IndustrialVectorStore
-from app.core.config import (
-    GROQ_API_KEY, QDRANT_HOST, QDRANT_PORT, QDRANT_COLLECTION_NAME,
-    EMBEDDING_MODEL, LLM_MODEL, LLM_TEMPERATURE, CHUNK_SIZE, CHUNK_OVERLAP,
-    USE_RERANKER, RERANKER_MODEL, TOP_K, TOP_N, SCORE_THRESHOLD, USE_HYBRID_SEARCH
-)
-from app.core.logging import PerformanceLogger
 
 logger = logging.getLogger(__name__)
 perf_logger = PerformanceLogger("rag_service")
@@ -110,7 +121,7 @@ class IndustrialRAGService:
 
         # Image pipeline: lazily loaded on first real use, to avoid paying
         # the GPU/memory cost if the app only ever serves text.
-        self._image_embedder: Optional[ImageEmbeddingService] = None
+        self._image_embedder: ImageEmbeddingService | None = None
         self.image_vector_store = IndustrialVectorStore(
             host=qdrant_host,
             port=qdrant_port,
@@ -121,13 +132,13 @@ class IndustrialRAGService:
 
         # Groq Vision client, lazily loaded (same pattern as image_embedder
         # above) - no cost if no image is ever uploaded.
-        self._vision_client: Optional[Groq] = None
+        self._vision_client: Groq | None = None
 
         self.llm_service = LLMService(model_name=llm_model, temperature=LLM_TEMPERATURE)
         if not self.llm_service.is_available:
             logger.warning("LLM unavailable - check GROQ_API_KEY")
 
-        self.reranker: Optional[IndustrialReranker] = None
+        self.reranker: IndustrialReranker | None = None
         if use_reranker:
             try:
                 self.reranker = IndustrialReranker(model_name=RERANKER_MODEL)
@@ -206,7 +217,7 @@ class IndustrialRAGService:
             logger.error(f"Vision captioning failed for {filename}: {e}")
             return f"Image file: {filename}"
 
-    def _store_image_point(self, filename: str, embedding: List[float]) -> int:
+    def _store_image_point(self, filename: str, embedding: list[float]) -> int:
         point_id = str(uuid.uuid4())
         try:
             self.image_vector_store.client.upsert(
@@ -225,7 +236,7 @@ class IndustrialRAGService:
             logger.error(f"Qdrant upsert failed for image {filename}: {e}")
             return 0
 
-    def ingest(self, file_stream: BytesIO, filename: str, metadata: Optional[Dict[str, Any]] = None) -> int:
+    def ingest(self, file_stream: BytesIO, filename: str, metadata: dict[str, Any] | None = None) -> int:
         """
         Real ingestion (text or image depending on extension).
 
@@ -261,10 +272,10 @@ class IndustrialRAGService:
     def search(
         self,
         query: str,
-        limit: Optional[int] = None,
-        use_hybrid: Optional[bool] = None,
-        use_reranker: Optional[bool] = None
-    ) -> List[Dict[str, Any]]:
+        limit: int | None = None,
+        use_hybrid: bool | None = None,
+        use_reranker: bool | None = None
+    ) -> list[dict[str, Any]]:
         limit = limit or self.default_top_k
         apply_hybrid = use_hybrid if use_hybrid is not None else self.vector_store.use_hybrid_search
         apply_reranker = (use_reranker if use_reranker is not None else self.use_reranker) and self.reranker is not None
@@ -331,11 +342,11 @@ class IndustrialRAGService:
     def run(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        top_n: Optional[int] = None,
-        use_hybrid: Optional[bool] = None,
-        use_reranker: Optional[bool] = None
-    ) -> Dict[str, Any]:
+        top_k: int | None = None,
+        top_n: int | None = None,
+        use_hybrid: bool | None = None,
+        use_reranker: bool | None = None
+    ) -> dict[str, Any]:
         logger.info(f"Processing query: {query}")
 
         top_k = top_k or self.default_top_k
@@ -397,7 +408,7 @@ RESPONSE GUIDELINES:
             "processing_time_ms": None
         }
 
-    def get_all_documents(self) -> List[Dict[str, Any]]:
+    def get_all_documents(self) -> list[dict[str, Any]]:
         documents = {}
 
         def process_collection(collection_name: str, vector_store: IndustrialVectorStore):
@@ -433,7 +444,7 @@ RESPONSE GUIDELINES:
             logger.info(f"No chunks found for: {filename}")
         return deleted_count
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         try:
             text_stats = self.vector_store.get_collection_stats()
             image_stats = self.image_vector_store.get_collection_stats()

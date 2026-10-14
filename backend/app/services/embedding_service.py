@@ -1,12 +1,13 @@
-import logging
 import hashlib
+import logging
+import os
 import pickle
 from pathlib import Path
-from typing import List, Optional
-import os
+from typing import ClassVar
 
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
+
 from app.core.config import EMBEDDING_CACHE_DIR
 from app.core.logging import PerformanceLogger
 
@@ -22,7 +23,7 @@ class IndustrialEmbeddingService:
     batch processing et fallback automatique.
     """
 
-    SUPPORTED_MODELS = {
+    SUPPORTED_MODELS: ClassVar[dict[str, int]] = {
         "all-MiniLM-L6-v2": 384,               # Rapide, léger, anglais principalement
         "all-mpnet-base-v2": 768,              # Plus précis, anglais
         "BAAI/bge-small-en-v1.5": 384,
@@ -39,9 +40,9 @@ class IndustrialEmbeddingService:
         self,
         model_name: str = "all-MiniLM-L6-v2",
         use_cache: bool = True,
-        cache_dir: Optional[Path] = None,
+        cache_dir: Path | None = None,
         batch_size: int = 32,
-        device: Optional[str] = None
+        device: str | None = None
     ):
         """
         Args:
@@ -95,7 +96,7 @@ class IndustrialEmbeddingService:
                 self.dimension = 384
                 self.model_name = "all-MiniLM-L6-v2"
             else:
-                raise e
+                raise
 
     def _get_text_hash(self, text: str) -> str:
         return hashlib.md5(text.encode("utf-8")).hexdigest()
@@ -103,14 +104,14 @@ class IndustrialEmbeddingService:
     def _get_cache_path(self, text_hash: str) -> Path:
         return self.cache_dir / f"{text_hash}.pkl"
 
-    def _save_to_cache(self, text_hash: str, embedding: List[float]) -> None:
+    def _save_to_cache(self, text_hash: str, embedding: list[float]) -> None:
         if not self.use_cache:
             return
         cache_path = self._get_cache_path(text_hash)
         with open(cache_path, "wb") as f:
             pickle.dump(embedding, f)
 
-    def _load_from_cache(self, text_hash: str) -> Optional[List[float]]:
+    def _load_from_cache(self, text_hash: str) -> list[float] | None:
         if not self.use_cache:
             return None
         cache_path = self._get_cache_path(text_hash)
@@ -122,7 +123,7 @@ class IndustrialEmbeddingService:
                 logger.warning(f"Cache read error: {e}")
         return None
 
-    def embed_single(self, text: str, use_cache: bool = True) -> List[float]:
+    def embed_single(self, text: str, use_cache: bool = True) -> list[float]:
         if not text:
             return [0.0] * self.dimension
 
@@ -148,10 +149,10 @@ class IndustrialEmbeddingService:
 
     def embed_batch(
         self,
-        texts: List[str],
+        texts: list[str],
         show_progress: bool = False,
         use_cache: bool = True
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         if not texts:
             return []
 
@@ -202,7 +203,7 @@ class IndustrialEmbeddingService:
 
         return embeddings
 
-    def embed_query(self, query: str) -> List[float]:
+    def embed_query(self, query: str) -> list[float]:
         """Alias pour embed_single (compatibilité avec le reste du code)."""
         return self.embed_single(query)
 
@@ -231,11 +232,11 @@ class IndustrialEmbeddingService:
         return count
 
     @classmethod
-    def get_available_models(cls) -> List[str]:
+    def get_available_models(cls) -> list[str]:
         return list(cls.SUPPORTED_MODELS.keys())
 
     @classmethod
-    def get_model_dimension(cls, model_name: str) -> Optional[int]:
+    def get_model_dimension(cls, model_name: str) -> int | None:
         return cls.SUPPORTED_MODELS.get(model_name)
 
 

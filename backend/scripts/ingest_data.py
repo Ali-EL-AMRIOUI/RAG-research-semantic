@@ -15,9 +15,9 @@ Cette version est un simple wrapper autour de IngestionService, qui est
 déjà la pipeline réelle et testée du projet (utilisée aussi par l'API).
 Un seul chemin d'ingestion dans tout le repo, plus deux qui divergent.
 """
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

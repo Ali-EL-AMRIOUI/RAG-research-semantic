@@ -1,13 +1,18 @@
 import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 
+from app.core.config import (
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    EMBEDDING_MODEL,
+    USE_HYBRID_SEARCH,
+)
 from app.db.vector_store import IndustrialVectorStore
 from app.services.embedding_service import IndustrialEmbeddingService
-from app.utils.document_loader import IndustrialDocumentLoader, DocumentChunk
-from app.utils.chunking import IndustrialChunker, Chunk
-from app.core.config import CHUNK_SIZE, CHUNK_OVERLAP, EMBEDDING_MODEL, USE_HYBRID_SEARCH
+from app.utils.chunking import Chunk, IndustrialChunker
+from app.utils.document_loader import DocumentChunk, IndustrialDocumentLoader
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +78,7 @@ class IngestionService:
             f"model={embedding_model}, dim={self.embedder.get_dimension()}"
         )
 
-    def ingest_pdf_file(self, file_path: Union[str, Path], metadata: Optional[Dict[str, Any]] = None) -> int:
+    def ingest_pdf_file(self, file_path: str | Path, metadata: dict[str, Any] | None = None) -> int:
         file_path = Path(file_path)
         metadata = metadata or {}
 
@@ -87,14 +92,14 @@ class IngestionService:
 
         return self._index_chunks(chunks, file_path.name)
 
-    def ingest_pdf_stream(self, pdf_stream: BytesIO, filename: str, metadata: Optional[Dict[str, Any]] = None) -> int:
+    def ingest_pdf_stream(self, pdf_stream: BytesIO, filename: str, metadata: dict[str, Any] | None = None) -> int:
         metadata = metadata or {}
         metadata["filename"] = filename
 
         logger.info(f"Ingesting file stream: {filename}")
 
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix or ".pdf") as tmp:
             tmp.write(pdf_stream.getvalue())
@@ -113,7 +118,7 @@ class IngestionService:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
-    def ingest_text(self, text: str, metadata: Optional[Dict[str, Any]] = None, source: str = "text_input") -> int:
+    def ingest_text(self, text: str, metadata: dict[str, Any] | None = None, source: str = "text_input") -> int:
         if not text or not text.strip():
             logger.warning("Empty text, ingestion skipped")
             return 0
@@ -135,7 +140,7 @@ class IngestionService:
 
         return self._index_chunks(chunks, source)
 
-    def ingest_markdown(self, markdown_text: str, metadata: Optional[Dict[str, Any]] = None, source: str = "markdown_input") -> int:
+    def ingest_markdown(self, markdown_text: str, metadata: dict[str, Any] | None = None, source: str = "markdown_input") -> int:
         if not markdown_text or not markdown_text.strip():
             logger.warning("Empty markdown, ingestion skipped")
             return 0
@@ -154,7 +159,7 @@ class IngestionService:
 
         return self._index_chunks(chunks, source)
 
-    def _index_chunks(self, chunks: List[Union[DocumentChunk, Chunk]], source_name: str) -> int:
+    def _index_chunks(self, chunks: list[DocumentChunk | Chunk], source_name: str) -> int:
         if not chunks:
             return 0
 
@@ -193,7 +198,7 @@ class IngestionService:
         logger.info(f"{inserted} chunks indexed for {source_name}")
         return inserted
 
-    def ingest_directory(self, directory_path: str, extensions: List[str] = None) -> Dict[str, int]:
+    def ingest_directory(self, directory_path: str, extensions: list[str] | None = None) -> dict[str, int]:
         extensions = extensions or [
             '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
             '.rtf', '.html', '.htm', '.txt', '.md', '.jpg', '.jpeg', '.png', '.tiff'
@@ -236,10 +241,10 @@ class IngestionService:
     def delete_document(self, filename: str) -> int:
         return self.vector_store.delete_documents(filter_conditions={"filename": filename})
 
-    def get_documents_list(self) -> List[str]:
+    def get_documents_list(self) -> list[str]:
         return self.vector_store.get_all_filenames()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,

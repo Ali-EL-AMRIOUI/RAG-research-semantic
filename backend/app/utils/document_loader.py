@@ -1,13 +1,13 @@
+import json
 import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from hashlib import md5
-import json
 from io import BytesIO
+from pathlib import Path
+from typing import Any, ClassVar
 
 from unstructured.partition.auto import partition
-from PIL import Image
+
 from app.core.config import DOCUMENT_CACHE_DIR
 from app.services.ocr_service import OCRService
 
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DocumentChunk:
     text: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     chunk_index: int = 0
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "text": self.text,
             "metadata": self.metadata,
@@ -36,19 +36,19 @@ class IndustrialDocumentLoader:
     supprimé : même nom de classe, jamais importé nulle part, code mort.
     """
 
-    SUPPORTED_EXTENSIONS = {
+    SUPPORTED_EXTENSIONS: ClassVar[set[str]] = {
         '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.rtf',
         '.html', '.htm', '.txt', '.md', '.jpg', '.jpeg', '.png', '.tiff'
     }
 
-    IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'}
+    IMAGE_EXTENSIONS: ClassVar[set[str]] = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'}
 
     def __init__(
         self,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         use_cache: bool = True,
-        cache_dir: Optional[Path] = None,
+        cache_dir: Path | None = None,
         ocr_enabled: bool = True
     ):
         self.chunk_size = chunk_size
@@ -70,7 +70,7 @@ class IndustrialDocumentLoader:
     def _get_cache_path(self, file_path: Path) -> Path:
         return self.cache_dir / f"{self._get_file_hash(file_path)}.json"
 
-    def _save_to_cache(self, file_path: Path, chunks: List[DocumentChunk]) -> None:
+    def _save_to_cache(self, file_path: Path, chunks: list[DocumentChunk]) -> None:
         if not self.use_cache:
             return
         data = {
@@ -80,7 +80,7 @@ class IndustrialDocumentLoader:
         with open(self._get_cache_path(file_path), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-    def _load_from_cache(self, file_path: Path) -> Optional[List[DocumentChunk]]:
+    def _load_from_cache(self, file_path: Path) -> list[DocumentChunk] | None:
         if not self.use_cache:
             return None
         cache_path = self._get_cache_path(file_path)
@@ -161,7 +161,7 @@ class IndustrialDocumentLoader:
 
         except Exception as e:
             logger.error(f"Extraction error for {file_path.name}: {e}")
-            raise e
+            raise
 
     def _get_overlap_prefix(self, finished_chunk_text: str) -> str:
         if self.chunk_overlap <= 0 or not finished_chunk_text:
@@ -172,7 +172,7 @@ class IndustrialDocumentLoader:
             overlap = overlap[space_idx + 1:]
         return overlap.strip()
 
-    def _chunk_text(self, text: str, metadata: Dict = None) -> List[DocumentChunk]:
+    def _chunk_text(self, text: str, metadata: dict | None = None) -> list[DocumentChunk]:
         """
         Découpage par paragraphes avec overlap réel entre chunks consécutifs.
         L'ancienne version accumulait des paragraphes sans jamais reprendre de
@@ -213,7 +213,7 @@ class IndustrialDocumentLoader:
         logger.info(f"{len(chunks)} chunks created (overlap={self.chunk_overlap})")
         return chunks
 
-    def load_and_chunk(self, file_path: Path, metadata: Dict = None) -> List[DocumentChunk]:
+    def load_and_chunk(self, file_path: Path, metadata: dict | None = None) -> list[DocumentChunk]:
         file_path = Path(file_path)
         metadata = metadata or {}
         metadata["source"] = file_path.name
@@ -234,7 +234,7 @@ class IndustrialDocumentLoader:
 
         return chunks
 
-    def load_from_bytes(self, file_bytes: BytesIO, filename: str, metadata: Dict = None) -> List[DocumentChunk]:
+    def load_from_bytes(self, file_bytes: BytesIO, filename: str, metadata: dict | None = None) -> list[DocumentChunk]:
         import tempfile
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp:

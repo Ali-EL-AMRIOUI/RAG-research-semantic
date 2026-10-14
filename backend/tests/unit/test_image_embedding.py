@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.modules.setdefault("torch", MagicMock())
 sys.modules.setdefault("open_clip", MagicMock())
 
-from app.services.image_embedding_service import ImageEmbeddingService  # noqa: E402
+from app.services.image_embedding_service import ImageEmbeddingService
 
 
 def _make_mock_open_clip_return(embedding_dim=512):

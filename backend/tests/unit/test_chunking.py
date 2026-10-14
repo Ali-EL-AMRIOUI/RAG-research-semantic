@@ -5,13 +5,14 @@ The first 3 tests each correspond to a real bug fixed during
 this session: without them, a future regression (e.g., someone touches
 split_markdown() without knowing it) would only be detected in production.
 """
-import pytest
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.utils.chunking import IndustrialChunker, Chunk
+from app.utils.chunking import Chunk, IndustrialChunker
 
 
 class TestTitleTracking:

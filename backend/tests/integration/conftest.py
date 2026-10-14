@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.core.config import QDRANT_HOST, QDRANT_PORT, GROQ_API_KEY  # noqa: E402
+from app.core.config import GROQ_API_KEY, QDRANT_HOST, QDRANT_PORT
 
 
 def _qdrant_reachable() -> bool:
@@ -41,5 +41,6 @@ def groq_key_available():
 @pytest.fixture(scope="session")
 def test_client(qdrant_available):
     from fastapi.testclient import TestClient
+
     from app.main import app
     return TestClient(app)

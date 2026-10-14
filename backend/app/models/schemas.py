@@ -9,10 +9,11 @@ Si app/api/routes/search.py ou app/main.py importaient depuis
 `app.models.requests` ou `app.db.documents`, mettre à jour les imports vers
 `app.models.schemas`.
 """
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
-from enum import Enum
 import uuid
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class SearchType(str, Enum):
@@ -26,15 +27,15 @@ class SearchType(str, Enum):
 class Document(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     text: str
-    metadata: Optional[Dict[str, Any]] = {}
+    metadata: dict[str, Any] | None = {}
 
 
 class Chunk(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    document_id: Optional[str] = None
+    document_id: str | None = None
     text: str
     chunk_index: int = 0
-    metadata: Optional[Dict[str, Any]] = {}
+    metadata: dict[str, Any] | None = {}
 
 
 class SourceDocument(BaseModel):
@@ -59,13 +60,13 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     query: str
     answer: str
-    sources: List[SourceDocument] = []
+    sources: list[SourceDocument] = []
     total_chunks: int = 0
-    processing_time_ms: Optional[float] = None
+    processing_time_ms: float | None = None
 
 
 class BatchQueryRequest(BaseModel):
-    queries: List[str] = Field(..., min_items=1, max_items=20)
+    queries: list[str] = Field(..., min_items=1, max_items=20)
     top_k: int = Field(default=5, ge=1, le=20)
 
 
@@ -75,26 +76,26 @@ class SimpleSearchRequest(BaseModel):
     query: str = Field(..., min_length=1)
     limit: int = Field(default=10, ge=1, le=100)
     search_type: SearchType = Field(default=SearchType.HYBRID)
-    score_threshold: Optional[float] = Field(default=None, ge=0, le=1)
-    filters: Optional[Dict[str, Any]] = None
+    score_threshold: float | None = Field(default=None, ge=0, le=1)
+    filters: dict[str, Any] | None = None
 
 
 class SearchResult(BaseModel):
     id: str
     score: float
     content: str
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 class CompareSearchRequest(BaseModel):
     query: str = Field(..., min_length=1)
     limit: int = Field(default=5, ge=1, le=20)
-    modes: List[SearchType] = [SearchType.VECTOR, SearchType.HYBRID, SearchType.KEYWORD]
+    modes: list[SearchType] = [SearchType.VECTOR, SearchType.HYBRID, SearchType.KEYWORD]
 
 
 class CompareResult(BaseModel):
     mode: str
-    results: List[SearchResult]
+    results: list[SearchResult]
     avg_score: float
     response_time_ms: float
 
@@ -103,14 +104,14 @@ class CompareResult(BaseModel):
 
 class IngestRequest(BaseModel):
     text: str = Field(..., min_length=1)
-    filename: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = {}
+    filename: str | None = None
+    metadata: dict[str, Any] | None = {}
 
 
 class IngestFileRequest(BaseModel):
     filename: str
     content: str = Field(..., min_length=1)
-    metadata: Optional[Dict[str, Any]] = {}
+    metadata: dict[str, Any] | None = {}
 
 
 class UploadResponse(BaseModel):
@@ -125,20 +126,20 @@ class UploadResponse(BaseModel):
 class DocumentInfo(BaseModel):
     name: str
     chunks: int
-    pages: List[int] = []
-    uploaded_at: Optional[str] = None
+    pages: list[int] = []
+    uploaded_at: str | None = None
 
 
 class DocumentsListResponse(BaseModel):
     total_documents: int
-    documents: List[DocumentInfo]
+    documents: list[DocumentInfo]
     total_chunks: int
 
 
 class DeleteRequest(BaseModel):
-    ids: Optional[List[str]] = None
-    filename: Optional[str] = None
-    filter_conditions: Optional[Dict[str, Any]] = None
+    ids: list[str] | None = None
+    filename: str | None = None
+    filter_conditions: dict[str, Any] | None = None
 
 
 class DeleteResponse(BaseModel):
@@ -156,8 +157,8 @@ class ClearResponse(BaseModel):
 
 
 class UpdateMetadataRequest(BaseModel):
-    ids: List[str]
-    metadata: Dict[str, Any]
+    ids: list[str]
+    metadata: dict[str, Any]
 
 
 # --- Stats / santé ---
@@ -181,29 +182,29 @@ class ServiceStats(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = "1.0.0"
-    services: Dict[str, bool] = {}
-    message: Optional[str] = None
+    services: dict[str, bool] = {}
+    message: str | None = None
 
 
 class ErrorResponse(BaseModel):
     error: str
-    detail: Optional[str] = None
+    detail: str | None = None
     status_code: int = 500
 
 
 # --- Embeddings bruts (endpoint de debug/introspection éventuel) ---
 
 class EmbeddingResponse(BaseModel):
-    embedding: List[float]
+    embedding: list[float]
     dimension: int
     model: str
 
 
 class VectorPoint(BaseModel):
     id: str
-    vector: List[float]
-    payload: Dict[str, Any]
-    score: Optional[float] = None
+    vector: list[float]
+    payload: dict[str, Any]
+    score: float | None = None
 
 
 # --- Feedback utilisateur ---
@@ -212,11 +213,11 @@ class FeedbackRequest(BaseModel):
     query_id: str
     answer_id: str
     rating: int = Field(..., ge=1, le=5)
-    comment: Optional[str] = Field(default=None, max_length=500)
-    relevant_sources: Optional[List[str]] = None
+    comment: str | None = Field(default=None, max_length=500)
+    relevant_sources: list[str] | None = None
 
 
 class FeedbackResponse(BaseModel):
     success: bool
     message: str
-    feedback_id: Optional[str] = None
+    feedback_id: str | None = None
