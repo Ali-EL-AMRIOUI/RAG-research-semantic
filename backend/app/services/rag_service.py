@@ -236,38 +236,32 @@ class IndustrialRAGService:
             logger.error(f"Qdrant upsert failed for image {filename}: {e}")
             return 0
 
-    def ingest(self, file_stream: BytesIO, filename: str, metadata: dict[str, Any] | None = None) -> int:
-        """
-        Real ingestion (text or image depending on extension).
 
-        Images: Groq Vision caption -> indexed in the main TEXT collection
-        (hybrid search + reranker already validated there). CLIP is kept
-        as well, in the separate image collection, for pure visual
-        similarity (not text-based search).
-        """
+    def ingest(
+        self,
+        file_stream: BytesIO,
+        filename: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> int:
+        """Ingest an image or a document."""
         try:
-            logger.info(f"Ingestion started for {filename}")
+            logger.info("Ingestion started for %s", filename)
 
             if self._is_image_file(filename):
-                caption = self._caption_image(file_stream, filename)
-
-                indexed = self.ingestion_service.ingest_text(
-                    text=caption,
-                    metadata={**(metadata or {}), "filename": filename, "modality": "image"},
-                    source=filename
-                )
-
                 file_stream.seek(0)
                 embedding = self.image_embedder.embed_image(file_stream)
-                self._store_image_point(filename, embedding)
+                return self._store_image_point(filename, embedding)
 
-                return indexed
-
-            return self.ingestion_service.ingest_pdf_stream(file_stream, filename, metadata=metadata)
+            return self.ingestion_service.ingest_pdf_stream(
+                file_stream,
+                filename,
+                metadata=metadata,
+            )
 
         except Exception as e:
-            logger.error(f"Ingestion error for {filename}: {e}")
+            logger.error("Ingestion error for %s: %s", filename, e)
             return 0
+
 
     def search(
         self,

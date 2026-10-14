@@ -18,7 +18,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 sys.modules.setdefault("sentence_transformers", MagicMock())
-sys.modules.setdefault("torch", MagicMock())
 sys.modules.setdefault("qdrant_client", MagicMock())
 sys.modules.setdefault("qdrant_client.http", MagicMock())
 sys.modules.setdefault("qdrant_client.models", MagicMock())
