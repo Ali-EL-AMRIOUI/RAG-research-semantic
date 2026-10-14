@@ -75,7 +75,7 @@ DEFAULT_TOP_K = TOP_K
 DEFAULT_TOP_N = TOP_N
 DEFAULT_SCORE_THRESHOLD = SCORE_THRESHOLD
 
-VISION_MODEL = "qwen/qwen3.6-27b"  # Groq multimodal model (OCR + caption + JSON mode)
+VISION_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"  # Groq multimodal model (OCR + caption + JSON mode)
 
 load_dotenv()
 
