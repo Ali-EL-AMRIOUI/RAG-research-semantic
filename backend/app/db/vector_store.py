@@ -23,11 +23,11 @@ indexés doivent être ré-ingérés après ce changement.
 """
 import logging
 import uuid
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client.models import FieldCondition, Filter, MatchValue
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +38,13 @@ SPARSE_VECTOR_NAME = "sparse"
 class SearchResult:
     """Résultat de recherche avec métadonnées"""
 
-    def __init__(self, id: str, score: float, content: str, metadata: Optional[Dict[str, Any]] = None):
+    def __init__(self, id: str, score: float, content: str, metadata: dict[str, Any] | None = None):
         self.id = id
         self.score = score
         self.content = content
         self.metadata = metadata or {}
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "score": self.score,
@@ -60,7 +60,7 @@ class IndustrialVectorStore:
         self,
         host: str = "localhost",
         port: int = 6333,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         collection_name: str = "documents",
         vector_dim: int = 384,
         use_hybrid_search: bool = True
@@ -91,7 +91,7 @@ class IndustrialVectorStore:
             self._sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
         return self._sparse_model
 
-    def _build_filter(self, filter_conditions: Optional[Dict]) -> Optional[Filter]:
+    def _build_filter(self, filter_conditions: dict | None) -> Filter | None:
         if not filter_conditions:
             return None
         conditions = [
@@ -138,8 +138,10 @@ class IndustrialVectorStore:
                             field_name=field,
                             field_schema="keyword"
                         )
-                    except Exception:
-                        pass
+                                        
+                                        
+                    except Exception as e:
+                        logger.debug(f"Payload index on '{field}' not created (may already exist): {e}")
 
                 logger.info(f"✅ Collection créée: {self.collection_name}")
             else:
@@ -150,9 +152,9 @@ class IndustrialVectorStore:
 
     def upsert_documents(
         self,
-        chunks: List[str],
-        embeddings: List[List[float]],
-        metadata: List[Dict[str, Any]],
+        chunks: list[str],
+        embeddings: list[list[float]],
+        metadata: list[dict[str, Any]],
         batch_size: int = 100
     ) -> int:
         if not chunks:
@@ -174,7 +176,7 @@ class IndustrialVectorStore:
         points = []
         for i in range(len(chunks)):
             point_id = str(uuid.uuid4())
-            vector: Dict[str, Any] = {DENSE_VECTOR_NAME: embeddings[i]}
+            vector: dict[str, Any] = {DENSE_VECTOR_NAME: embeddings[i]}
 
             if sparse_embeddings is not None:
                 se = sparse_embeddings[i]
@@ -208,11 +210,11 @@ class IndustrialVectorStore:
 
     def search_vector(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        filter_conditions: Optional[Dict] = None
-    ) -> List[SearchResult]:
+        score_threshold: float | None = None,
+        filter_conditions: dict | None = None
+    ) -> list[SearchResult]:
         """Recherche vectorielle dense pure."""
         qdrant_filter = self._build_filter(filter_conditions)
 
@@ -243,12 +245,12 @@ class IndustrialVectorStore:
 
     def search_hybrid(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         query_text: str,
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        filter_conditions: Optional[Dict] = None
-    ) -> List[SearchResult]:
+        score_threshold: float | None = None,
+        filter_conditions: dict | None = None
+    ) -> list[SearchResult]:
         """
         Recherche hybride réelle : fusion RRF entre recherche dense (sémantique)
         et recherche sparse BM25 (mots-clés exacts) — les deux exécutées côté
@@ -309,8 +311,8 @@ class IndustrialVectorStore:
 
     def delete_documents(
         self,
-        filter_conditions: Optional[Dict] = None,
-        ids: Optional[List[str]] = None
+        filter_conditions: dict | None = None,
+        ids: list[str] | None = None
     ) -> int:
         """
         Supprime des documents. Retourne le nombre réel de points supprimés
@@ -355,7 +357,7 @@ class IndustrialVectorStore:
             logger.error(f"Erreur suppression: {e}")
             return 0
 
-    def get_documents_by_filename(self, filename: str) -> List[SearchResult]:
+    def get_documents_by_filename(self, filename: str) -> list[SearchResult]:
         """
         Récupère tous les chunks d'un fichier. Utilise scroll+filter plutôt
         qu'une recherche vectorielle avec un vecteur factice [0.0, ...]
@@ -393,7 +395,7 @@ class IndustrialVectorStore:
             logger.error(f"Erreur récupération par filename: {e}")
             return []
 
-    def get_all_filenames(self) -> List[str]:
+    def get_all_filenames(self) -> list[str]:
         try:
             scroll_result = self.client.scroll(
                 collection_name=self.collection_name,
@@ -404,12 +406,12 @@ class IndustrialVectorStore:
             for point in scroll_result[0]:
                 if "filename" in point.payload:
                     filenames.add(point.payload["filename"])
-            return sorted(list(filenames))
+            return sorted(filenames)
         except Exception as e:
             logger.error(f"Erreur récupération fichiers: {e}")
             return []
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         try:
             info = self.client.get_collection(self.collection_name)
             return {

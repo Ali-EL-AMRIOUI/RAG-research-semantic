@@ -16,13 +16,13 @@ cross-modale. Nécessite le paquet `open-clip-torch` (à ajouter à
 requirements.txt).
 """
 import logging
-from pathlib import Path
-from typing import List, Optional, Union
 from io import BytesIO
+from pathlib import Path
+from typing import ClassVar
 
+import open_clip
 import torch
 from PIL import Image
-import open_clip
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class ImageEmbeddingService:
 
     # (model_name, pretrained) -> dimension de sortie
-    SUPPORTED_MODELS = {
+    SUPPORTED_MODELS: ClassVar[dict[tuple[str, str], int]] = {
         ("ViT-B-32", "laion2b_s34b_b79k"): 512,   # Bon compromis vitesse/qualité, défaut
         ("ViT-B-16", "laion2b_s34b_b88k"): 512,
         ("ViT-L-14", "laion2b_s32b_b82k"): 768,
@@ -40,7 +40,7 @@ class ImageEmbeddingService:
         self,
         model_name: str = "ViT-B-32",
         pretrained: str = "laion2b_s34b_b79k",
-        device: Optional[str] = None
+        device: str | None = None
     ):
         self.model_name = model_name
         self.pretrained = pretrained
@@ -68,9 +68,9 @@ class ImageEmbeddingService:
                 self.dimension = 512
                 self.tokenizer = open_clip.get_tokenizer("ViT-B-32")
             else:
-                raise e
+                raise
 
-    def embed_image(self, image: Union[bytes, BytesIO, Path, str]) -> List[float]:
+    def embed_image(self, image: bytes | BytesIO | Path | str) -> list[float]:
         """Encode une image (bytes, BytesIO, ou chemin) en vecteur normalisé."""
         try:
             if isinstance(image, bytes):
@@ -91,7 +91,7 @@ class ImageEmbeddingService:
             logger.error(f"Image embedding error: {e}")
             return [0.0] * self.dimension
 
-    def embed_text_query(self, text: str) -> List[float]:
+    def embed_text_query(self, text: str) -> list[float]:
         """
         Encodes a text query into the SAME joint embedding space as
         embed_image() — OpenCLIP's text encoder, not
@@ -115,7 +115,7 @@ class ImageEmbeddingService:
             logger.error(f"Text query embedding error: {e}")
             return [0.0] * self.dimension
 
-    def embed_images_batch(self, images: List[Union[bytes, BytesIO, Path, str]]) -> List[List[float]]:
+    def embed_images_batch(self, images: list[bytes | BytesIO | Path | str]) -> list[list[float]]:
         return [self.embed_image(img) for img in images]
 
     def get_dimension(self) -> int:
@@ -130,5 +130,5 @@ class ImageEmbeddingService:
         }
 
     @classmethod
-    def get_available_models(cls) -> List[str]:
-        return [f"{name}/{pretrained}" for name, pretrained in cls.SUPPORTED_MODELS.keys()]
+    def get_available_models(cls) -> list[str]:
+        return [f"{name}/{pretrained}" for name, pretrained in cls.SUPPORTED_MODELS]

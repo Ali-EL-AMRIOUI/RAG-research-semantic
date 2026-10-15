@@ -10,12 +10,11 @@ document_loader.py utilise maintenant CETTE classe au lieu d'appeler
 pytesseract directement.
 """
 import logging
-from pathlib import Path
-from typing import Union
 from io import BytesIO
+from pathlib import Path
 
-from PIL import Image
 import pytesseract
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ class OCRService:
     def __init__(self, languages: str = "fra+eng"):
         self.languages = languages
 
-    def extract_text(self, image: Union[str, Path, bytes, BytesIO]) -> str:
+    def extract_text(self, image: str | Path | bytes | BytesIO) -> str:
         try:
             if isinstance(image, bytes):
                 img = Image.open(BytesIO(image))

@@ -20,7 +20,7 @@ sys.modules.setdefault("qdrant_client", MagicMock())
 sys.modules.setdefault("qdrant_client.http", MagicMock())
 sys.modules.setdefault("qdrant_client.models", MagicMock())
 
-from app.services.retrieval_service import RetrievalService  # noqa: E402
+from app.services.retrieval_service import RetrievalService
 
 
 class TestDimensionDerivation:

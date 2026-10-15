@@ -6,8 +6,8 @@ doesn't have them installed (multi-GB download), and these tests target
 OUR wrapper logic (caching, fallback, dimension handling), not
 SentenceTransformer itself.
 """
-import sys
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -19,7 +19,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.modules.setdefault("sentence_transformers", MagicMock())
 sys.modules.setdefault("torch", MagicMock())
 
-from app.services.embedding_service import IndustrialEmbeddingService, EmbeddingServiceFactory  # noqa: E402
+from app.services.embedding_service import (
+    EmbeddingServiceFactory,
+    IndustrialEmbeddingService,
+)
 
 
 @pytest.fixture

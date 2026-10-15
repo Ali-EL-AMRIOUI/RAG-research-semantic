@@ -9,8 +9,8 @@ get invoked — because these are exactly the bugs found and fixed this
 session, not generic sanity checks.
 """
 import sys
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -18,7 +18,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 sys.modules.setdefault("sentence_transformers", MagicMock())
-sys.modules.setdefault("torch", MagicMock())
 sys.modules.setdefault("qdrant_client", MagicMock())
 sys.modules.setdefault("qdrant_client.http", MagicMock())
 sys.modules.setdefault("qdrant_client.models", MagicMock())
@@ -106,7 +105,7 @@ class TestRunSignature:
     """
 
     def test_run_accepts_top_k_top_n_use_hybrid_use_reranker(self):
-        service, mock_ingestion, mock_llm, _ = _build_service()
+        service, _mock_ingestion, _mock_llm, _ = _build_service()
 
         result = service.run(
             query="test question",
@@ -119,7 +118,7 @@ class TestRunSignature:
         assert "answer" in result
 
     def test_run_with_no_relevant_chunks_still_returns_answer(self):
-        service, mock_ingestion, mock_llm, _ = _build_service()
+        service, _mock_ingestion, mock_llm, _ = _build_service()
         mock_llm.generate.return_value = "I don't have information about that."
 
         result = service.run(query="unrelated question")
@@ -165,7 +164,7 @@ class TestRerankerActuallyInvoked:
         mock_reranker.rerank_search_results.assert_not_called()
 
     def test_reranker_not_called_when_no_results(self):
-        service, mock_ingestion, _, mock_reranker = _build_service(use_reranker=True)
+        service, _mock_ingestion, _, mock_reranker = _build_service(use_reranker=True)
         # search_hybrid already defaults to [] in _build_service
 
         service.search("test query", use_reranker=True)
@@ -176,7 +175,7 @@ class TestRerankerActuallyInvoked:
 class TestLLMUnavailable:
 
     def test_run_returns_error_message_when_llm_unavailable_not_exception(self):
-        service, mock_ingestion, mock_llm, _ = _build_service()
+        service, _mock_ingestion, mock_llm, _ = _build_service()
         mock_llm.generate.side_effect = RuntimeError("LLM not initialized (check GROQ_API_KEY)")
 
         result = service.run(query="test question")

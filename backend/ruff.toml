@@ -1,0 +1,13 @@
+[lint]
+# BLE001: blanket except-Exception is a deliberate, consistent pattern across
+# this codebase (Qdrant/Groq/ML model calls are wrapped broadly so one failing
+# service never crashes the whole request). Narrowing every except clause to
+# specific exception types is a larger refactor than this cleanup pass, and
+# would need coordinated testing per call site. Revisit if/when we invest in
+# per-service error typing.
+#
+# B008: FastAPI's recommended pattern is `param: T = Depends(...)` /
+# `= File(...)` as a default argument value - this is how FastAPI's own docs
+# and examples do it. The rule is a false positive for this specific
+# framework idiom.
+ignore = ["BLE001", "B008"]

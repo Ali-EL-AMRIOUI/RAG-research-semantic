@@ -11,11 +11,11 @@ propre ChatGroq — sinon ce fichier finit comme image_embedding_service.py
 avant sa réécriture : correct, mais mort, dupliqué ailleurs.
 """
 import logging
-from typing import Optional, Dict, Any
+from typing import Any
 
 from langchain_groq import ChatGroq
 
-from app.core.config import GROQ_API_KEY, LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS
+from app.core.config import GROQ_API_KEY, LLM_MAX_TOKENS, LLM_MODEL, LLM_TEMPERATURE
 
 logger = logging.getLogger(__name__)
 
@@ -26,14 +26,14 @@ class LLMService:
         self,
         model_name: str = LLM_MODEL,
         temperature: float = LLM_TEMPERATURE,
-        api_key: Optional[str] = None,
-        max_tokens: Optional[int] = None,
+        api_key: str | None = None,
+        max_tokens: int | None = None,
     ):
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens if max_tokens is not None else LLM_MAX_TOKENS
-        self._client: Optional[ChatGroq] = None
-        self._last_usage: Dict[str, Any] = {}
+        self._client: ChatGroq | None = None
+        self._last_usage: dict[str, Any] = {}
 
         resolved_key = api_key if api_key is not None else GROQ_API_KEY
         if not resolved_key:
@@ -69,11 +69,11 @@ class LLMService:
         return response.content
 
     @property
-    def last_usage(self) -> Dict[str, Any]:
+    def last_usage(self) -> dict[str, Any]:
         """Tokens (input/output) du dernier appel generate(). Vide si non disponible."""
         return self._last_usage
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         return {
             "model_name": self.model_name,
             "temperature": self.temperature,

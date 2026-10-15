@@ -20,20 +20,30 @@ Inchangé depuis la version précédente :
 - /health vérifie une vraie connectivité Qdrant (vector_store.is_healthy()).
 - setup_logging() appelé au démarrage.
 """
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import uvicorn
 import io
 import logging
 import traceback
+
+import uvicorn
 from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 load_dotenv()
 import multiprocessing
+
 multiprocessing.set_start_method('spawn', force=True)
 
-from app.core.config import CORS_ORIGINS, API_HOST, API_PORT, API_RELOAD, LOG_LEVEL, LOG_FORMAT, LOG_FILE
+from app.core.config import (
+    API_HOST,
+    API_PORT,
+    API_RELOAD,
+    CORS_ORIGINS,
+    LOG_FILE,
+    LOG_FORMAT,
+    LOG_LEVEL,
+)
 from app.core.logging import setup_logging
 from app.core.security import verify_api_key
 

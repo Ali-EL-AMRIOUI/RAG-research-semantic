@@ -6,12 +6,11 @@ environment. OCRService is mocked (already tested for real in
 test_ocr_service.py). The cache round-trip is tested with REAL temp files
 on disk, no mocking — that logic is pure Python and worth testing as-is.
 """
-import sys
-import json
 import shutil
+import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -21,7 +20,7 @@ sys.modules.setdefault("unstructured", MagicMock())
 sys.modules.setdefault("unstructured.partition", MagicMock())
 sys.modules.setdefault("unstructured.partition.auto", MagicMock())
 
-from app.utils.document_loader import IndustrialDocumentLoader, DocumentChunk  # noqa: E402
+from app.utils.document_loader import DocumentChunk, IndustrialDocumentLoader
 
 
 @pytest.fixture

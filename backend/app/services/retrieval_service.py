@@ -1,9 +1,9 @@
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 
+from app.core.config import EMBEDDING_MODEL, USE_HYBRID_SEARCH
 from app.db.vector_store import IndustrialVectorStore
 from app.services.embedding_service import IndustrialEmbeddingService
-from app.core.config import EMBEDDING_MODEL, USE_HYBRID_SEARCH
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +48,10 @@ class RetrievalService:
         self,
         query: str,
         limit: int = 5,
-        score_threshold: Optional[float] = None,
-        filter_conditions: Optional[Dict[str, Any]] = None,
-        use_hybrid: Optional[bool] = None
-    ) -> List[Dict[str, Any]]:
+        score_threshold: float | None = None,
+        filter_conditions: dict[str, Any] | None = None,
+        use_hybrid: bool | None = None
+    ) -> list[dict[str, Any]]:
         if not query or not query.strip():
             logger.warning("Empty query")
             return []
@@ -85,28 +85,28 @@ class RetrievalService:
             logger.error(f"Search error: {e}")
             return []
 
-    def search_by_filename(self, filename: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def search_by_filename(self, filename: str, limit: int = 50) -> list[dict[str, Any]]:
         logger.info(f"Search by filename: {filename}")
         results = self.vector_store.get_documents_by_filename(filename)
         return [r.to_dict() for r in results[:limit]]
 
-    def search_simple(self, query: str, limit: int = 5) -> List[str]:
+    def search_simple(self, query: str, limit: int = 5) -> list[str]:
         results = self.search(query, limit=limit)
         return [r["content"] for r in results]
 
-    def get_all_filenames(self) -> List[str]:
+    def get_all_filenames(self) -> list[str]:
         return self.vector_store.get_all_filenames()
 
-    def get_document_chunks(self, filename: str) -> List[Dict[str, Any]]:
+    def get_document_chunks(self, filename: str) -> list[dict[str, Any]]:
         results = self.vector_store.get_documents_by_filename(filename)
         chunks = [r.to_dict() for r in results]
         chunks.sort(key=lambda x: x.get("metadata", {}).get("chunk_index", 0))
         return chunks
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         return self.vector_store.get_collection_stats()
 
-    def search_with_context(self, query: str, context_chunks: int = 2, limit: int = 5) -> Dict[str, Any]:
+    def search_with_context(self, query: str, context_chunks: int = 2, limit: int = 5) -> dict[str, Any]:
         results = self.search(query, limit=limit)
 
         enriched_results = []

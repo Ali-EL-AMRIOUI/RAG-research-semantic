@@ -9,8 +9,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.ingestion_service import IngestionService  # noqa: E402
-from app.core.config import QDRANT_HOST, QDRANT_PORT  # noqa: E402
+from app.core.config import QDRANT_HOST, QDRANT_PORT
+from app.services.ingestion_service import IngestionService
 
 TEST_COLLECTION = "integration_test_pipeline"
 

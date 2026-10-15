@@ -14,6 +14,7 @@ trail), replace this with OAuth2/JWT. This is intentionally minimal and
 matches the current single-operator scope of the project.
 """
 import logging
+
 from fastapi import Header, HTTPException, status
 
 from app.core.config import API_KEY
