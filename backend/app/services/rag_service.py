@@ -75,7 +75,7 @@ DEFAULT_TOP_K = TOP_K
 DEFAULT_TOP_N = TOP_N
 DEFAULT_SCORE_THRESHOLD = SCORE_THRESHOLD
 
-VISION_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"  # Groq multimodal model (OCR + caption + JSON mode)
+VISION_MODEL = "qwen/qwen3.8-27b"  # Groq multimodal model (OCR + caption + JSON mode)
 
 load_dotenv()
 
@@ -215,7 +215,7 @@ class IndustrialRAGService:
             return caption
         except Exception as e:
             logger.error(f"Vision captioning failed for {filename}: {e}")
-            return f"Image file: {filename}"
+            raise e
 
     def _store_image_point(self, filename: str, embedding: list[float]) -> int:
         point_id = str(uuid.uuid4())
@@ -248,9 +248,19 @@ class IndustrialRAGService:
             logger.info("Ingestion started for %s", filename)
 
             if self._is_image_file(filename):
+                caption = self._caption_image(file_stream, filename)
+
+                indexed = self.ingestion_service.ingest_text(
+                    text=caption,
+                    metadata={**(metadata or {}), "filename": filename, "modality": "image"},
+                    source=filename
+                )
+
                 file_stream.seek(0)
                 embedding = self.image_embedder.embed_image(file_stream)
-                return self._store_image_point(filename, embedding)
+                self._store_image_point(filename, embedding)
+
+                return indexed
 
             return self.ingestion_service.ingest_pdf_stream(
                 file_stream,
@@ -339,7 +349,8 @@ class IndustrialRAGService:
         top_k: int | None = None,
         top_n: int | None = None,
         use_hybrid: bool | None = None,
-        use_reranker: bool | None = None
+        use_reranker: bool | None = None,
+        conversation_history: list[dict[str, str]] | None = None
     ) -> dict[str, Any]:
         logger.info(f"Processing query: {query}")
 
@@ -349,7 +360,8 @@ class IndustrialRAGService:
         chunks = self.search(query, limit=top_k, use_hybrid=use_hybrid, use_reranker=use_reranker)
 
         sources_for_response = []
-        if chunks:
+        has_context = bool(chunks)
+        if has_context:
             top_chunks = chunks[:top_n]
             context_parts = [f"[Source: {c.get('filename', 'Unknown')}] {c.get('text', '')}" for c in top_chunks]
             context = "\n\n---\n\n".join(context_parts)
@@ -362,20 +374,32 @@ class IndustrialRAGService:
                     "score": c.get('score', 0)
                 })
         else:
-            context = "No relevant documents found in the knowledge base."
+            context = ""
 
-        prompt = f"""You are a professional and friendly AI Assistant for document search.
+        history_block = ""
+        if conversation_history:
+            history_lines = []
+            for turn in conversation_history[-6:]:
+                role = turn.get("role", "user")
+                content = turn.get("content", "")
+                history_lines.append(f"{role.upper()}: {content}")
+            history_block = "CONVERSATION HISTORY (for context only, do not treat as source documents):\n" + "\n".join(history_lines) + "\n\n"
 
-PROVIDED CONTEXT FROM KNOWLEDGE BASE:
-{context}
+        prompt = f"""You are a precise document search assistant. Your ONLY source of factual information is the CONTEXT below, extracted from the user's indexed documents.
+
+STRICT RULES — follow exactly, no exceptions:
+1. Always respond in the same language as the user's question (a French question gets a French answer, an English question gets an English answer), regardless of the language of the CONTEXT below.
+2. If the user sends a greeting or casual small talk (hello, thanks, how are you), respond briefly and naturally. Do not mention documents.
+3. For any factual question, answer ONLY using the CONTEXT below. Before stating a precise fact (a date, a place, a name, a number), quote in quotation marks the exact passage from the CONTEXT that proves it. If you cannot produce that exact quote, say the information is not clearly available rather than stating it anyway. Cite the source filename for every claim.
+4. If the CONTEXT does not contain the answer, say (in the user's language): "Je n'ai pas trouvé cette information dans les documents indexés." / "I couldn't find this information in the indexed documents."
+5. If the user asks about the system itself (how many files, what documents exist, system capabilities) rather than document content, say (in the user's language): "Je ne peux répondre qu'aux questions portant sur le contenu de vos documents indexés. Pour le nombre de documents ou leur gestion, utilisez la liste de documents dans la barre latérale." / "I can only answer questions about the content of your indexed documents. For document counts or management, please use the document list in the sidebar."
+6. Never fabricate a source filename or page number that is not in the CONTEXT.
+7. If the user indicates that a previous answer was wrong, never repeat that claim as stated. Say clearly that you cannot confirm that information with certainty from the documents, rather than repeating the contested claim.
+
+{history_block}CONTEXT FROM KNOWLEDGE BASE:
+{context if has_context else "(no relevant documents found for this query)"}
 
 USER QUESTION: {query}
-
-RESPONSE GUIDELINES:
-1. If the user greets you or engages in small talk, respond politely as a chatbot.
-2. If the question is about details found in the CONTEXT, provide a precise answer based on the documents, citing the source filename.
-3. If the information is NOT in the CONTEXT, clearly state that it is not in the indexed documents, but provide a helpful answer using your general knowledge if possible.
-4. Always maintain a professional and supportive tone.
 """
 
         try:
@@ -401,7 +425,6 @@ RESPONSE GUIDELINES:
             "sources_details": chunks[:top_n] if chunks else [],
             "processing_time_ms": None
         }
-
     def get_all_documents(self) -> list[dict[str, Any]]:
         documents = {}
 

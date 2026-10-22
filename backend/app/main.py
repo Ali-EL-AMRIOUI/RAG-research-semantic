@@ -53,8 +53,14 @@ logger = logging.getLogger(__name__)
 from app.services.rag_service import IndustrialRAGService
 
 
+class ConversationTurn(BaseModel):
+    role: str
+    content: str
+
+
 class AskRequest(BaseModel):
     question: str
+    history: list[ConversationTurn] = []
 
 
 class DeleteRequest(BaseModel):
@@ -183,7 +189,8 @@ async def ask_question(request: AskRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
     try:
-        result = rag_service.run(request.question)
+        history_dicts = [{"role": h.role, "content": h.content} for h in request.history]
+        result = rag_service.run(request.question, conversation_history=history_dicts)
         return result
     except Exception as e:
         logger.error("ASK ERROR:")

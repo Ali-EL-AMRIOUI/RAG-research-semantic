@@ -26,4 +26,6 @@ const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: API_KEY ? { 'X-API-Key': API_KEY } : {},
+  timeout: 60000,
+
 });
