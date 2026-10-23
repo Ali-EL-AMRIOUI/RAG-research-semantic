@@ -21,7 +21,6 @@ services:
       - backend/.env
     depends_on:
       - qdrant
-   
 
   # GPU variant: `docker-compose --profile gpu up backend-gpu qdrant`
   # Default `docker-compose up` uses the CPU-only `backend` above and
@@ -61,5 +60,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-  volumes:
-        huggingface_cache:
+
+volumes:
+  huggingface_cache:
