@@ -215,7 +215,7 @@ class IndustrialRAGService:
             return caption
         except Exception as e:
             logger.error(f"Vision captioning failed for {filename}: {e}")
-            raise e
+            raise 
 
     def _store_image_point(self, filename: str, embedding: list[float]) -> int:
         point_id = str(uuid.uuid4())

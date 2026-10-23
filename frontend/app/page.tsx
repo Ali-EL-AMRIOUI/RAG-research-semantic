@@ -245,7 +245,7 @@ export default function Home() {
                           </div>
                           {doc.content && (
                             <div style={{ fontSize: 11, color: '#64748b', fontStyle: 'italic', marginTop: 4 }}>
-                              "{doc.content.length > 150 ? doc.content.substring(0, 150) + '...' : doc.content}"
+                               {doc.content.length > 150 ? doc.content.substring(0, 150) + '...' : doc.content}
                             </div>
                           )}
                         </div>
