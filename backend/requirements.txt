@@ -22,5 +22,4 @@ pytesseract
 pillow
 open-clip-torch
 fastembed
-unstructured[all-pdf]
-clip @ git+https://github.com/openai/CLIP.git
+unstructured[pdf,docx,pptx,xlsx,csv,epub,odt,md]

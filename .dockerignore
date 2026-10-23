@@ -1,5 +1,8 @@
 backend/.venv
 backend/__pycache__
 backend/.env
+backend/tests
+backend/data/raw
+backend/cache
 qdrant_storage
 .git

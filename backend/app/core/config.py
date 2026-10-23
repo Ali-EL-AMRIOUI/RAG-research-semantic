@@ -40,7 +40,7 @@ EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 EMBEDDING_BATCH_SIZE: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "32"))
 EMBEDDING_USE_CACHE: bool = os.getenv("EMBEDDING_USE_CACHE", "True").lower() in ("true", "1", "yes")
 
-LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "4096"))
 

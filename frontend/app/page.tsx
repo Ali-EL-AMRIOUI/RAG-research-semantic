@@ -16,20 +16,20 @@ interface SourceDocument {
   score?: number;
 }
 
-interface Answer {
-  answer: string;
-  source_documents?: SourceDocument[];
-  processing_time_ms?: number;
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: SourceDocument[];
 }
 
 export default function Home() {
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<Answer | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadDocuments = async () => {
     setLoadingDocs(true);
@@ -48,37 +48,54 @@ export default function Home() {
   }, []);
 
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     const allowedExtensions = ['.pdf', '.txt', '.md', '.docx', '.html', '.htm', '.jpg', '.jpeg', '.png'];
-    const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
-
-    if (!allowedExtensions.includes(fileExt)) {
-      setUploadMessage({ type: 'error', text: 'Unsupported format. Accepted formats: PDF, TXT, MD, DOCX, HTML, JPG, PNG' });
-      setTimeout(() => setUploadMessage(null), 3000);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
 
     setUploading(true);
     setUploadMessage(null);
 
-    try {
-      await api.post('/upload', formData);
-      setUploadMessage({ type: 'success', text: `"${file.name}" indexed successfully` });
-      await loadDocuments();
-      e.target.value = '';
-    } catch (error: unknown) {
-      console.error(error);
-      const errorMsg = isAxiosError(error) ? error.response?.data?.detail || 'Upload error' : 'Upload error';
-      setUploadMessage({ type: 'error', text: `${errorMsg}` });
-    } finally {
-      setUploading(false);
-      setTimeout(() => setUploadMessage(null), 3000);
+    let successCount = 0;
+    let failCount = 0;
+    const failedNames: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
+
+      if (!allowedExtensions.includes(fileExt)) {
+        failCount++;
+        failedNames.push(file.name);
+        continue;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        await api.post('/upload', formData);
+        successCount++;
+      } catch (error: unknown) {
+        console.error(error);
+        failCount++;
+        failedNames.push(file.name);
+      }
     }
+
+    await loadDocuments();
+    e.target.value = '';
+
+    if (failCount === 0) {
+      setUploadMessage({ type: 'success', text: `${successCount} file(s) indexed successfully` });
+    } else {
+      setUploadMessage({
+        type: 'error',
+        text: `${successCount} succeeded, ${failCount} failed (${failedNames.join(', ')})`,
+      });
+    }
+
+    setUploading(false);
+    setTimeout(() => setUploadMessage(null), 4000);
   };
 
   const onDeleteDocument = async (filename: string) => {
@@ -100,19 +117,33 @@ export default function Home() {
     e.preventDefault();
     if (!question.trim()) return;
 
+    const userMessage: Message = { role: 'user', content: question };
+    const historyForRequest = messages.map((m) => ({ role: m.role, content: m.content }));
+
+    setMessages((prev) => [...prev, userMessage]);
+    setQuestion('');
     setLoading(true);
-    setAnswer(null);
 
     try {
-      const res = await api.post('/ask', { question });
-      setAnswer(res.data);
-      setQuestion('');
+      const res = await api.post('/ask', { question, history: historyForRequest });
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: res.data.answer,
+        sources: res.data.source_documents,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: unknown) {
       console.error(error);
-      alert(`Error: ${isAxiosError(error) ? error.response?.data?.detail || 'AI is not responding' : 'AI is not responding'}`);
+      const errorMsg = isAxiosError(error) ? error.response?.data?.detail || 'AI is not responding' : 'AI is not responding';
+      setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearConversation = () => {
+    if (!confirm('Clear the whole conversation?')) return;
+    setMessages([]);
   };
 
   const truncateFilename = (name: string, maxLen: number = 25) => {
@@ -137,7 +168,7 @@ export default function Home() {
           <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 12, letterSpacing: '0.5px' }}>DOCUMENTS</div>
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px 16px', backgroundColor: '#3b82f6', border: 'none', borderRadius: 10, color: 'white', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
             {uploading ? 'Indexing...' : 'Upload (PDF, TXT, DOCX, etc.)'}
-            <input type="file" style={{ display: 'none' }} onChange={onUpload} disabled={uploading} />
+            <input type="file" multiple style={{ display: 'none' }} onChange={onUpload} disabled={uploading} />
           </label>
           {uploadMessage && (
             <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, fontSize: 11, backgroundColor: uploadMessage.type === 'success' ? '#064e3b' : '#7f1d1d', color: uploadMessage.type === 'success' ? '#86efac' : '#fca5a5' }}>
@@ -174,7 +205,7 @@ export default function Home() {
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 40px', overflow: 'hidden', backgroundColor: '#f0f4f8' }}>
         <div style={{ flex: 1, overflowY: 'auto', maxWidth: 900, margin: '0 auto', width: '100%' }}>
-          {!answer && !loading && (
+          {messages.length === 0 && !loading && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center' }}>
               <div style={{ fontSize: 64, marginBottom: 20 }}>🔍</div>
               <div style={{ fontSize: 22, fontWeight: 600, color: '#1e293b' }}>Semantic Search</div>
@@ -184,51 +215,51 @@ export default function Home() {
             </div>
           )}
 
-          {loading && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <div style={{ fontSize: 48, marginBottom: 20 }}>⏳</div>
-              <div style={{ fontSize: 16, color: '#64748b' }}>Processing...</div>
+          {messages.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <button onClick={clearConversation} style={{ fontSize: 11, color: '#94a3b8', background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
+                Clear conversation
+              </button>
             </div>
           )}
 
-          {answer && (
-            <div>
-              <div style={{ backgroundColor: '#ffffff', padding: 28, borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <span style={{ fontSize: 20 }}>💡</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#3b82f6', letterSpacing: '0.5px' }}>ANSWER</span>
+          {messages.map((msg, idx) => (
+            <div key={idx} style={{ marginBottom: 20 }}>
+              {msg.role === 'user' ? (
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ backgroundColor: '#3b82f6', color: 'white', padding: '12px 18px', borderRadius: 18, maxWidth: '70%', fontSize: 14 }}>
+                    {msg.content}
+                  </div>
                 </div>
-                <div style={{ fontSize: 15, lineHeight: 1.7, color: '#1e293b' }}>{answer.answer}</div>
-                {answer.processing_time_ms && (
-                  <div style={{ marginTop: 16, fontSize: 11, color: '#94a3b8', textAlign: 'right' }}>
-                    ⚡ {answer.processing_time_ms} ms
+              ) : (
+                <div>
+                  <div style={{ backgroundColor: '#ffffff', padding: 20, borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', fontSize: 14, lineHeight: 1.6, color: '#1e293b', whiteSpace: 'pre-wrap' }}>                    {msg.content}
                   </div>
-                )}
-              </div>
-
-              {answer.source_documents && answer.source_documents.length > 0 && (
-                <div style={{ marginTop: 32 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: 18 }}>📖</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>SOURCES ({answer.source_documents.length})</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {answer.source_documents.map((doc, i) => (
-                      <div key={i} style={{ padding: 14, backgroundColor: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', fontSize: 12, lineHeight: 1.5, color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
-                          <span style={{ fontWeight: 600, color: '#3b82f6', fontSize: 11 }}>#{i + 1}</span>
-                          <span style={{ color: '#64748b', fontSize: 11 }}>📄 {doc.filename || 'Document'}</span>
-                          {doc.page !== undefined && doc.page > 0 && <span style={{ color: '#64748b', fontSize: 11 }}>p.{doc.page}</span>}
-                          {doc.score !== undefined && <span style={{ color: '#64748b', fontSize: 11 }}>{(doc.score * 100).toFixed(0)}%</span>}
+                  {msg.sources && msg.sources.length > 0 && (
+                    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Sources ({msg.sources.length}) :</div>
+                      {msg.sources.map((doc, i) => (
+                        <div key={i} style={{ padding: 10, backgroundColor: '#ffffff', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 11, color: '#475569' }}>
+                          <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>
+                            📄 {doc.filename || 'Document'} {doc.page ? `• Page ${doc.page}` : ''} {`• Résultat #${i + 1}`}
+                          </div>
+                          {doc.content && (
+                            <div style={{ fontSize: 11, color: '#64748b', fontStyle: 'italic', marginTop: 4 }}>
+                               {doc.content.length > 150 ? doc.content.substring(0, 150) + '...' : doc.content}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', color: '#475569' }}>
-                          {typeof doc === 'string' ? doc : doc.content || 'Content not available'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+            </div>
+          ))}
+
+          {loading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#64748b', fontSize: 14 }}>
+              <span>⏳</span> Processing...
             </div>
           )}
         </div>

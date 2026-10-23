@@ -76,14 +76,18 @@ class TestIngestRouting:
 
     def test_image_delegates_to_image_embedder_not_ingestion_service(self):
         service, mock_ingestion, _, _ = _build_service()
-
+        mock_ingestion.ingest_text.return_value = 1
+    
         mock_image_embedder = MagicMock()
         mock_image_embedder.embed_image.return_value = [0.1] * 512
         service._image_embedder = mock_image_embedder
-
-        with patch.object(service, "_store_image_point", return_value=1):
+    
+        with (
+            patch.object(service, "_caption_image", return_value="mocked caption"),
+            patch.object(service, "_store_image_point", return_value=1)
+        ):
             result = service.ingest(BytesIO(b"fake image bytes"), filename="photo.jpg")
-
+    
         assert result == 1
         mock_ingestion.ingest_pdf_stream.assert_not_called()
         mock_image_embedder.embed_image.assert_called_once()
