@@ -76,6 +76,7 @@ class TestIngestRouting:
 
     def test_image_delegates_to_image_embedder_not_ingestion_service(self):
         service, mock_ingestion, _, _ = _build_service()
+        mock_ingestion.ingest_text.return_value = 1
     
         mock_image_embedder = MagicMock()
         mock_image_embedder.embed_image.return_value = [0.1] * 512
