@@ -81,9 +81,9 @@ class TestIngestRouting:
         mock_image_embedder.embed_image.return_value = [0.1] * 512
         service._image_embedder = mock_image_embedder
     
-        with patch.object(service, "_generate_image_caption", return_value="mocked caption"):
-            with patch.object(service, "_store_image_point", return_value=1):
-                result = service.ingest(BytesIO(b"fake image bytes"), filename="photo.jpg")
+        with patch.object(service, "_generate_image_caption", return_value="mocked caption"), \
+             patch.object(service, "_store_image_point", return_value=1):
+            result = service.ingest(BytesIO(b"fake image bytes"), filename="photo.jpg")
     
         assert result == 1
         mock_ingestion.ingest_pdf_stream.assert_not_called()
