@@ -37,17 +37,38 @@ spec:
           value: "qdrant-service"
         - name: QDRANT_PORT
           value: "6333"
-        # Moved here from under the Service below — "resources" isn't a
-        # valid field on a Service or on a port entry, only on a container.
-        # kubectl apply with validation on would have rejected the old
-        # manifest outright ("unknown field resources").
         resources:
           requests:
             memory: "1Gi"
             cpu: "500m"
           limits:
-            memory: "2Gi"
+            memory: "4Gi"
             cpu: "1000m"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 30
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 15
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 30
+          failureThreshold: 3
+        volumeMounts:
+        - name: hf-cache
+          mountPath: /root/.cache/huggingface
+      volumes:
+      - name: hf-cache
+        persistentVolumeClaim:
+          claimName: hf-cache-pvc
 ---
 apiVersion: v1
 kind: Service
