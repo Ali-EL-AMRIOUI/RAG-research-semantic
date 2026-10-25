@@ -20,7 +20,6 @@ spec:
         image: qdrant/qdrant:latest
         ports:
         - containerPort: 6333
-        # Ressources ajustées pour la performance de recherche vectorielle
         resources:
           limits:
             memory: "2Gi"
